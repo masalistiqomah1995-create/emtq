@@ -1,31 +1,52 @@
 <script>
-    // 🔴 MASUKKAN URL DEPLOYMENT BARU GOOGLE APPS SCRIPT ANDA DI SINI
-    const API_URL = "https://script.google.com/macros/s/AKfycbxjkxcwurQw34f6cBfMO2DTdF6H9mwGsSlQ_pT8dQZ3sB4VmcGm0dLQcMp2SufalCDv/exec";
+    // ==========================================
+    // 🔴 MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA
+    // ==========================================
+    const API_URL = "https://script.google.com/macros/s/AKfycbxjkxcwurQw34f6cBfMO2DTdF6H9mwGsSlQ_pT8dQZ3sB4VmcGm0dLQcMp2SufalCDv/exec"; 
+    // ^ Ganti dengan URL Web App baru Anda setelah di-deploy ulang sebagai 'Anyone'
 
     let globalConfig = { cabangList: [] };
     let currentUser = { loggedIn: false, role: 'Public', name: '', branch: 'Semua' };
 
-    // Mesin Helper Fetch API Pengganti google.script.run
+    // ==========================================
+    // ⚙️ ENGINE UTAMA: HTTP REST FETCH API
+    // ==========================================
     async function callBackendGet(action, params = {}) {
-      const urlParams = new URLSearchParams({ action, ...params }).toString();
-      const response = await fetch(`${API_URL}?${urlParams}`);
-      return await response.json();
+      try {
+        const urlParams = new URLSearchParams({ action, ...params }).toString();
+        const response = await fetch(`${API_URL}?${urlParams}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
+      } catch (e) {
+        console.error("GET Error:", e);
+        throw e;
+      }
     }
 
     async function callBackendPost(action, bodyData = {}) {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ action, ...bodyData }),
-        headers: { "Content-Type": "text/plain;charset=utf-8" }
-      });
-      return await response.json();
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action, ...bodyData }),
+          headers: { "Content-Type": "text/plain;charset=utf-8" }
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
+      } catch (e) {
+        console.error("POST Error:", e);
+        throw e;
+      }
     }
 
+    // Inisialisasi Aplikasi Saat Halaman Selesai Dimuat
     document.addEventListener('DOMContentLoaded', function() {
       switchTab('home');
       loadInitialDashboardData();
     });
 
+    // ==========================================
+    // 💻 FUNGSI LOGIKA ANTARMUKA (NAVIGASI & TAB)
+    // ==========================================
     function switchTab(tabId) {
       ['home', 'pendaftaran', 'login', 'admin-panel', 'judge-panel'].forEach(id => {
         const section = document.getElementById('content-' + id);
@@ -38,7 +59,7 @@
       if(targetSection) targetSection.classList.remove('hidden');
       const targetTab = document.getElementById('tab-' + tabId);
       if(targetTab) targetTab.classList.add('tab-active');
-      
+
       if(tabId === 'admin-panel' && currentUser.role === 'Admin') {
         loadAdminCabangTable();
       }
@@ -47,7 +68,7 @@
     async function loadInitialDashboardData() {
       try {
         const res = await callBackendGet('getDashboardData');
-        if (res.success) {
+        if (res && res.success) {
           globalConfig.cabangList = res.data.cabangList;
           renderCabangLists();
         }
@@ -67,19 +88,24 @@
       if(leadSelect) leadSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>';
       if(adminLeadSelect) adminLeadSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>';
 
-      globalConfig.cabangList.forEach(c => {
-        if(homeList) {
-          homeList.innerHTML += `<li style="padding:10px; background:#f8fafc; border-radius:8px; border-left:4px solid #d4af37;">
-            <strong>${c.nama}</strong><br><small style="color:#64748b;">Kriteria: ${c.kriteria}</small>
-          </li>`;
-        }
-        const opt = `<option value="${c.nama}">${c.nama}</option>`;
-        if(regSelect) regSelect.innerHTML += opt;
-        if(leadSelect) leadSelect.innerHTML += opt;
-        if(adminLeadSelect) adminLeadSelect.innerHTML += opt;
-      });
+      if(globalConfig.cabangList && globalConfig.cabangList.length > 0) {
+        globalConfig.cabangList.forEach(c => {
+          if(homeList) {
+            homeList.innerHTML += `<li style="padding:10px; background:#f8fafc; border-radius:8px; border-left:4px solid #d4af37; margin-bottom:8px; list-style:none;">
+              <strong>${c.nama}</strong><br><small style="color:#64748b;">Kriteria: ${c.kriteria}</small>
+            </li>`;
+          }
+          const opt = `<option value="${c.nama}">${c.nama}</option>`;
+          if(regSelect) regSelect.innerHTML += opt;
+          if(leadSelect) leadSelect.innerHTML += opt;
+          if(adminLeadSelect) adminLeadSelect.innerHTML += opt;
+        });
+      }
     }
 
+    // ==========================================
+    // 📊 KLASEMEN & SKOR (LEADERBOARD)
+    // ==========================================
     async function triggerLeaderboardLoad() {
       const branch = document.getElementById('leaderboardSelect').value;
       const kat = document.getElementById('leaderboardKategori').value;
@@ -87,7 +113,7 @@
       
       const body = document.getElementById('leaderboardBody');
       const head = document.getElementById('leaderboardHeader');
-      body.innerHTML = `<tr><td colspan="10" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Sinkronisasi Klasemen...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="10" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat klasemen...</td></tr>`;
       
       try {
         const res = await callBackendGet('getBranchScores', { branchName: branch, kategori: kat });
@@ -128,6 +154,9 @@
       });
     }
 
+    // ==========================================
+    // 🔐 OTENTIKASI & SECURITY LOGIN
+    // ==========================================
     async function handleLogin(e) {
       e.preventDefault();
       const user = document.getElementById('username').value;
@@ -156,6 +185,17 @@
       }
     }
 
+    function logout() {
+      currentUser = { loggedIn: false, role: 'Public', name: '', branch: 'Semua' };
+      document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-circle-dot"></i> Public Mode`;
+      document.getElementById('tab-admin').classList.add('hidden');
+      document.getElementById('tab-judge').classList.add('hidden');
+      switchTab('home');
+    }
+
+    // ==========================================
+    // 📝 SUBMIT DATA PENDAFTARAN & FILE ENCODE
+    // ==========================================
     function fileToBase64(file) {
       return new Promise((resolve, reject) => {
         if(!file) resolve({file: null, name: null, type: null});
@@ -173,7 +213,7 @@
       const statusCont = document.getElementById('regStatusContainer');
       const btn = document.getElementById('regBtn');
       
-      statusCont.classList.remove('hidden');
+      if(statusCont) statusCont.classList.remove('hidden');
       btn.disabled = true;
 
       try {
@@ -208,11 +248,21 @@
       } catch (err) {
         alert("Terjadi kegagalan pendaftaran sistem: " + err.message);
       } finally {
-        statusCont.classList.add('hidden');
+        if(statusCont) statusCont.classList.add('hidden');
         btn.disabled = false;
       }
     }
 
+    function syncKafilahWithDesa(selectEl) {
+      if (selectEl.value) {
+        const kafilahInput = document.getElementById('regKafilah');
+        if(kafilahInput) kafilahInput.value = "Desa " + selectEl.value;
+      }
+    }
+
+    // ==========================================
+    // 🛠️ PANEL CONTROL ADMIN & JUARA UMUM
+    // ==========================================
     async function loadAdminCabangTable() {
       const tableBody = document.getElementById('adminCabangTable');
       if(!tableBody) return;
@@ -247,7 +297,7 @@
     }
 
     async function deleteCabangClick(id, nama) {
-      if(!confirm(`Apakah Anda yakin ingin menghapus cabang ${nama}? Semua lembar skor terikat akan ikut dihapus.`)) return;
+      if(!confirm(`Apakah Anda yakin menghapus cabang ${nama}?`)) return;
       try {
         const res = await callBackendPost('deleteCabang', { id, nama });
         alert(res.message);
@@ -272,11 +322,11 @@
     async function refreshJuaraPemenang() {
       const wBody = document.getElementById('compiledWinnersBody');
       const gBody = document.getElementById('generalChampionBody');
-      wBody.innerHTML = `<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Memproses kalkulasi skor...</td></tr>`;
+      if(wBody) wBody.innerHTML = `<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Menghitung skor...</td></tr>`;
       
       try {
         const res = await callBackendGet('syncAndGetWinners');
-        if(res.success) {
+        if(res.success && wBody && gBody) {
           wBody.innerHTML = '';
           gBody.innerHTML = '';
           
@@ -299,18 +349,8 @@
             </tr>`;
           });
         }
-      } catch(err) { alert("Gagal kalkulasi juara umum: " + err.message); }
-    }
-
-    function syncKafilahWithDesa(selectEl) {
-      if (selectEl.value) document.getElementById('regKafilah').value = "Desa " + selectEl.value;
-    }
-
-    function logout() {
-      currentUser = { loggedIn: false, role: 'Public', name: '', branch: 'Semua' };
-      document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-circle-dot"></i> Public Mode`;
-      document.getElementById('tab-admin').classList.add('hidden');
-      document.getElementById('tab-judge').classList.add('hidden');
-      switchTab('home');
+      } catch(err) { alert("Gagal memuat juara umum: " + err.message); }
     }
   </script>
+</body>
+</html>
