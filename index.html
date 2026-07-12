@@ -473,44 +473,52 @@
       if(activeBtn) activeBtn.classList.add('tab-active');
     }
 
-    async function loadPublicDashboardData() {
-      try {
-        const response = await fetch(`${API_URL}?action=getPublicDashboard`);
-        const res = await response.json();
-        if(res.success) {
-          globalConfig.cabangList = res.cabangList;
-          // Render Dynamic Selector Cabang
-          const regSelect = document.getElementById('regCabangLomba');
-          const editSelect = document.getElementById('editRegCabang');
-          const leadSelect = document.getElementById('leaderboardSelect');
-          
-          let opts = '<option value="">-- Pilih Cabang --</option>';
-          res.cabangList.forEach(c => { opts += `<option value="${c.nama}">${c.nama}</option>`; });
-          if(regSelect) regSelect.innerHTML = opts;
-          if(editSelect) editSelect.innerHTML = opts;
-          if(leadSelect) leadSelect.innerHTML = opts;
-
-          // RENDER TABEL PESERTA PUBLIC TERBATAS (Nomor | Nama | Cabang | Golongan | Kafilah)
-          const pBody = document.getElementById('publicParticipantsBody');
-          if(pBody) {
-            pBody.innerHTML = '';
-            if(res.pesertaList && res.pesertaList.length > 0) {
-              res.pesertaList.forEach(p => {
-                pBody.innerHTML += `<tr>
-                  <td style="font-weight:700; color:#1b4332;">${p.nomorPeserta}</td>
-                  <td><strong>${p.namaPeserta}</strong></td>
-                  <td>${p.cabangLomba}</td>
-                  <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:4px;">${p.golongan}</span></td>
-                  <td style="font-weight:600;">${p.kafilah}</td>
-                </tr>`;
-              });
-            } else {
-              pBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">Belum ada peserta terdaftar.</td></tr>';
-            }
-          }
-        }
-      } catch(e) { console.error("Gagal memuat data dashboard publik", e); }
+   async function loadPublicDashboardData() {
+  try {
+    if (API_URL.includes("EXAMPLE")) {
+      console.error("Peringatan: API_URL masih menggunakan link contoh (dummy). Silakan ganti dengan URL Apps Script Anda!");
+      return;
     }
+    
+    const response = await fetch(`${API_URL}?action=getPublicDashboard`);
+    const res = await response.json();
+    if(res.success) {
+      globalConfig.cabangList = res.cabangList;
+      
+      // Render Pilihan Cabang Lomba secara Dinamis
+      const regSelect = document.getElementById('regCabangLomba');
+      const editSelect = document.getElementById('editRegCabang');
+      const leadSelect = document.getElementById('leaderboardSelect');
+      
+      let opts = '<option value="">-- Pilih Cabang --</option>';
+      res.cabangList.forEach(c => { opts += `<option value="${c.nama}">${c.nama}</option>`; });
+      if(regSelect) regSelect.innerHTML = opts;
+      if(editSelect) editSelect.innerHTML = opts;
+      if(leadSelect) leadSelect.innerHTML = opts;
+
+      // Render Tabel Publik Peserta Terbatas
+      const pBody = document.getElementById('publicParticipantsBody');
+      if(pBody) {
+        pBody.innerHTML = '';
+        if(res.pesertaList && res.pesertaList.length > 0) {
+          res.pesertaList.forEach(p => {
+            pBody.innerHTML += `<tr>
+              <td style="font-weight:700; color:#1b4332;">${p.nomorPeserta}</td>
+              <td><strong>${p.namaPeserta}</strong></td>
+              <td>${p.cabangLomba}</td>
+              <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:4px;">${p.golongan}</span></td>
+              <td style="font-weight:600;">${p.kafilah}</td>
+            </tr>`;
+          });
+        } else {
+          pBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:15px;">Belum ada peserta terdaftar.</td></tr>';
+        }
+      }
+    }
+  } catch(e) { 
+    console.error("Gagal memuat data dari Apps Script. Pastikan CORS diizinkan dan URL benar.", e); 
+  }
+}
 
     // HANDLER PENDAFTARAN BARU
     async function handleRegistrationSubmit(e) {
