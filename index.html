@@ -5,10 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistem MTQ - LPTQ Kecamatan Pasar Kemis</title>
   
+  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <!-- SheetJS (XLSX) Library untuk Ekspor Spreadsheet Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+  <!-- STYLE INTERNAL ISLAMI MODERN: ANTI-BLOKIR GOOGLE SANDBOX & CSP -->
   <style>
     /* RESET & DASAR */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -242,6 +245,7 @@
 </head>
 <body>
 
+  <!-- HEADER -->
   <header>
     <div class="container header-content">
       <div class="emblem-wrapper">
@@ -260,6 +264,7 @@
     </div>
   </header>
 
+  <!-- NAVIGATION -->
   <nav>
     <div class="container nav-container">
       <button onclick="switchTab('home')" id="tab-home" class="nav-tab">
@@ -280,10 +285,13 @@
     </div>
   </nav>
 
+  <!-- MAIN BODY -->
   <main class="container">
 
+    <!-- TAB 1: BERANDA -->
     <section id="content-home">
       <div class="grid-1-3">
+        <!-- DAFTAR CABANG -->
         <div class="card">
           <div class="card-title"><i class="fa-solid fa-list-check"></i> Cabang Lomba</div>
           <ul id="homeCabangList" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
@@ -291,6 +299,7 @@
           </ul>
         </div>
         
+        <!-- REAL TIME LEADERBOARD -->
         <div class="card">
           <div class="card-title">
             <i class="fa-solid fa-trophy"></i> Papan Peringkat Sementara Cabang
@@ -314,6 +323,7 @@
       </div>
     </section>
 
+    <!-- TAB 2: PENDAFTARAN -->
     <section id="content-pendaftaran" class="hidden">
       <div class="card" style="max-width: 800px; margin: 0 auto;">
         <div class="card-title"><i class="fa-solid fa-file-signature"></i> Formulir Pendaftaran Peserta MTQ</div>
@@ -427,6 +437,7 @@
       </div>
     </section>
 
+    <!-- TAB 3: LOGIN -->
     <section id="content-login" class="hidden">
       <div class="card" style="max-width: 400px; margin: 40px auto;">
         <div class="card-title" style="justify-content: center;"><i class="fa-solid fa-shield-halved"></i> Login Dewan Hakim & Admin</div>
@@ -444,6 +455,7 @@
       </div>
     </section>
 
+    <!-- TAB 4: ADMIN PANEL -->
     <section id="content-admin-panel" class="hidden space-y-6">
       <div class="card" style="background: #1b4332; color: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
@@ -462,6 +474,7 @@
         </div>
         
         <div class="grid-1-3">
+          <!-- KLASEMEN JUARA UMUM -->
           <div>
             <h4 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 10px; color: #1b4332;">Kafilah Juara Umum</h4>
             <div class="table-responsive">
@@ -480,6 +493,7 @@
             </div>
           </div>
           
+          <!-- PAPAN PEMENANG TERBAIK CABANG -->
           <div>
             <h4 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 10px; color: #1b4332;">Rekap Juara Terbaik Per Cabang Lomba</h4>
             <div class="table-responsive">
@@ -535,6 +549,10 @@
               <input type="text" id="cabangNama" required class="form-control">
             </div>
             <div class="form-group">
+              <label>Kode Cabang / No. Peserta Prefix</label>
+              <input type="text" id="cabangPrefix" required class="form-control" placeholder="Contoh: TL (untuk Tilawah), HQ">
+            </div>
+            <div class="form-group">
               <label>Kriteria Penilaian (Pisahkan koma)</label>
               <textarea id="cabangKriteria" required rows="3" class="form-control" placeholder="Tajwid, Fashahah, Lagu"></textarea>
             </div>
@@ -553,6 +571,7 @@
                 <tr>
                   <th>ID</th>
                   <th>Cabang Lomba</th>
+                  <th>Kode (Prefix)</th>
                   <th>Kriteria</th>
                   <th style="text-align: center;">Aksi</th>
                 </tr>
@@ -564,6 +583,7 @@
       </div>
     </section>
 
+    <!-- TAB 5: JUDGE PANEL -->
     <section id="content-judge-panel" class="hidden">
       <div class="card" style="background: #1b4332; color: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-left: 6px solid #d4af37;">
         <div>
@@ -579,18 +599,22 @@
           <form id="scoreForm" onsubmit="handleScoreSubmit(event)">
             <div class="form-group">
               <label>Kategori</label>
-              <select id="scoreKategori" required onchange="loadJudgeLiveScores(globalConfig.activeBranch)" class="form-control" style="font-weight: 700;">
+              <select id="scoreKategori" required onchange="fetchParticipantsForJudge()" class="form-control" style="font-weight: 700;">
                 <option value="PUTRA">PUTRA</option>
                 <option value="PUTRI">PUTRI</option>
               </select>
             </div>
             <div class="form-group">
               <label>Nomor Urut Peserta</label>
-              <input type="text" id="scoreNo" required class="form-control">
+              <select id="scoreNo" required onchange="syncParticipantName()" class="form-control" style="font-weight: bold; color: #1b4332;">
+                <option value="">-- Pilih No Peserta --</option>
+              </select>
             </div>
             <div class="form-group">
               <label>Nama Lengkap Peserta</label>
-              <input type="text" id="scoreNama" required class="form-control">
+              <select id="scoreNama" required onchange="syncParticipantNo()" class="form-control" style="font-weight: bold; color: #1b4332;">
+                <option value="">-- Pilih Nama Peserta --</option>
+              </select>
             </div>
             <div id="dynamicCriteriaContainer" style="padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px;"></div>
             <div class="form-group">
@@ -619,18 +643,17 @@
     &copy; 2026 Lembaga Pengembangan Tilawatil Qur'an (LPTQ) Kecamatan Pasar Kemis Kab. Tangerang.
   </footer>
 
+  <!-- SCRIPT LOGIC SYSTEM JAVASCRIPT (VERSI REST API) -->
   <script>
     // =========================================================================
-    // 🔴 MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    // URL WEB APP GOOGLE APPS SCRIPT
     // =========================================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbxjkxcwurQw34f6cBfMO2DTdF6H9mwGsSlQ_pT8dQZ3sB4VmcGm0dLQcMp2SufalCDv/exec"; 
 
     let globalConfig = { cabangList: [], activeBranch: '' };
     let currentUser = { loggedIn: false, role: 'Public', name: '', branch: 'Semua' };
+    let liveParticipantsCache = []; // Menyimpan data peserta aktif di panel hakim
 
-    // =========================================================================
-    // ⚙️ ENGINE UTAMA: HTTP REST FETCH API CLIENT (MENDUKUNG CORS PENUH)
-    // =========================================================================
     async function callBackendGet(action, params = {}) {
       try {
         const urlParams = new URLSearchParams({ action, ...params }).toString();
@@ -658,14 +681,13 @@
       }
     }
 
-    // Inisialisasi Aplikasi Saat Halaman Selesai Dimuat
     document.addEventListener('DOMContentLoaded', function() {
       switchTab('home');
       loadInitialDashboardData();
     });
 
     // =========================================================================
-    // 💻 NAVIGATION & TAB CONTROLLER SYSTEM
+    // 💻 NAVIGATION & TAB CONTROLLER
     // =========================================================================
     function switchTab(tabId) {
       const sections = ['home', 'pendaftaran', 'login', 'admin-panel', 'judge-panel'];
@@ -699,7 +721,6 @@
       }
     }
 
-    // Load Data Awal Dashboard Musabaqah via GET
     async function loadInitialDashboardData() {
       try {
         const res = await callBackendGet('getDashboardData');
@@ -732,7 +753,7 @@
           if(homeList) {
             const displayKriteria = c.kriteria && c.kriteria.trim() !== "" ? c.kriteria : "Belum Ditentukan";
             homeList.innerHTML += `<li style="padding:10px; background:#f8fafc; border-radius:8px; border-left:4px solid #1b4332; margin-bottom:8px; list-style:none; font-size: 0.8rem; font-weight: 700; color: #1e293b;">
-              <strong>${c.nama}</strong><span style="display: block; font-size: 0.7rem; font-weight: 500; color:#64748b; margin-top: 2px;">Kriteria: ${displayKriteria}</span>
+              <strong>${c.nama} (${c.prefix || '-'})</strong><span style="display: block; font-size: 0.7rem; font-weight: 500; color:#64748b; margin-top: 2px;">Kriteria: ${displayKriteria}</span>
             </li>`;
           }
           const opt = `<option value="${c.nama}">${c.nama}</option>`;
@@ -752,14 +773,12 @@
       const desaValue = selectEl.value;
       const kafilahSelect = document.getElementById('regKafilah');
       if (!desaValue || !kafilahSelect) return;
-      
       const isKelurahan = ["Kuta Baru", "Kuta Jaya", "Kutabumi"].includes(desaValue);
-      const prefix = isKelurahan ? "Kelurahan" : "Desa";
-      kafilahSelect.value = `${prefix} ${desaValue}`;
+      kafilahSelect.value = `${isKelurahan ? "Kelurahan" : "Desa"} ${desaValue}`;
     }
 
     // =========================================================================
-    // 📊 KLASEMEN LEADERBOARD & RENDER ENGINES
+    // 📊 KLASEMEN LEADERBOARD
     // =========================================================================
     async function triggerLeaderboardLoad() {
       const branch = document.getElementById('leaderboardSelect').value;
@@ -798,8 +817,7 @@
 
     function renderTableData(scoreData, headEl, bodyEl) {
       if(!headEl || !bodyEl) return;
-      headEl.innerHTML = '';
-      bodyEl.innerHTML = '';
+      headEl.innerHTML = ''; bodyEl.innerHTML = '';
       
       if(!scoreData.headers || scoreData.headers.length === 0 || !scoreData.rows || scoreData.rows.length === 0) {
         bodyEl.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 20px; color: #94a3b8;">Belum ada record data nilai untuk cabang ini.</td></tr>`;
@@ -857,7 +875,7 @@
           alert(res.message || "Gagal melakukan verifikasi masuk.");
         }
       } catch (err) {
-        alert("Autentikasi gagal akibat kendala jaringan: " + err.message);
+        alert("Autentikasi gagal: " + err.message);
       }
     }
 
@@ -870,7 +888,7 @@
     }
 
     // =========================================================================
-    // 📝 SUBMIT DATA PENDAFTARAN & FILE ENCODE PROMISES
+    // 📝 SUBMIT REGISTRASI
     // =========================================================================
     function fileToBase64(file) {
       return new Promise((resolve) => {
@@ -922,7 +940,7 @@
           switchTab('home');
         }
       } catch (err) {
-        alert("Terjadi kegagalan pendaftaran sistem: " + err.message);
+        alert("Terjadi kegagalan pendaftaran: " + err.message);
       } finally {
         if(statusCont) statusCont.classList.add('hidden');
         if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
@@ -935,7 +953,7 @@
     async function loadAdminCabangTable() {
       const tableBody = document.getElementById('adminCabangTable');
       if(!tableBody) return;
-      tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Memuat data...</td></tr>';
       
       try {
         const res = await callBackendGet('getDashboardData');
@@ -946,16 +964,17 @@
             tableBody.innerHTML += `<tr>
               <td style="font-weight: 500; color: #64748b;">${c.id}</td>
               <td><strong>${c.nama}</strong></td>
+              <td style="font-weight: bold; color: #b45309;">${c.prefix || '-'}</td>
               <td>${c.kriteria ? c.kriteria : "Belum Ditentukan"}</td>
               <td style="text-align:center;">
-                <button onclick="editCabang('${c.id}', '${c.nama}', '${c.kriteria}')" class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                <button onclick="editCabang('${c.id}', '${c.nama}', '${c.prefix || ''}', '${c.kriteria}')" class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
                 <button onclick="deleteCabangClick('${c.id}', '${c.nama}')" class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-trash"></i> Hapus</button>
               </td>
             </tr>`;
           });
         }
       } catch(e) {
-        tableBody.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center;">Gagal sinkronisasi data tabel admin.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Gagal sinkronisasi data tabel admin.</td></tr>';
       }
     }
 
@@ -963,10 +982,11 @@
       e.preventDefault();
       const id = document.getElementById('cabangId').value;
       const nama = document.getElementById('cabangNama').value;
+      const prefix = document.getElementById('cabangPrefix').value;
       const kriteria = document.getElementById('cabangKriteria').value;
       
       try {
-        const res = await callBackendPost('saveCabang', { id, nama, kriteria });
+        const res = await callBackendPost('saveCabang', { id, nama, prefix, kriteria });
         alert(res.message);
         clearCabangForm();
         await loadAdminCabangTable();
@@ -982,9 +1002,10 @@
       } catch(err) { alert(err.message); }
     }
 
-    function editCabang(id, nama, kriteria) {
+    function editCabang(id, nama, prefix, kriteria) {
       document.getElementById('cabangId').value = id;
       document.getElementById('cabangNama').value = nama;
+      document.getElementById('cabangPrefix').value = prefix;
       document.getElementById('cabangKriteria').value = kriteria;
       document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Cabang Lomba';
       document.getElementById('cabangForm').scrollIntoView({ behavior: 'smooth' });
@@ -1005,30 +1026,18 @@
       try {
         const res = await callBackendGet('syncAndGetWinners');
         if(res && res.success && wBody && gBody) {
-          wBody.innerHTML = '';
-          gBody.innerHTML = '';
-          
+          wBody.innerHTML = ''; gBody.innerHTML = '';
           if(res.data && res.data.winners) {
             res.data.winners.forEach(w => {
               wBody.innerHTML += `<tr style="border-bottom: 1px solid #f1f5f9;">
                 <td><strong>${w.cabang}</strong></td>
                 <td style="font-weight: 700; color: #0284c7; text-align: center;">${w.kategori}</td>
-                <td>
-                  <div style="font-weight: 800; color: #b45309;">${w.j1.name}</div>
-                  <div style="font-size: 0.7rem; color: #64748b;">${w.j1.kafilah} (${w.j1.score})</div>
-                </td>
-                <td>
-                  <div style="font-weight: 700; color: #475569;">${w.j2.name}</div>
-                  <div style="font-size: 0.7rem; color: #64748b;">${w.j2.kafilah} (${w.j2.score})</div>
-                </td>
-                <td>
-                  <div style="font-weight: 700; color: #7c2d12;">${w.j3.name}</div>
-                  <div style="font-size: 0.7rem; color: #64748b;">${w.j3.kafilah} (${w.j3.score})</div>
-                </td>
+                <td><div>${w.j1.name}</div><div style="font-size: 0.7rem; color: #64748b;">${w.j1.kafilah} (${w.j1.score})</div></td>
+                <td><div>${w.j2.name}</div><div style="font-size: 0.7rem; color: #64748b;">${w.j2.kafilah} (${w.j2.score})</div></td>
+                <td><div>${w.j3.name}</div><div style="font-size: 0.7rem; color: #64748b;">${w.j3.kafilah} (${w.j3.score})</div></td>
               </tr>`;
             });
           }
-
           if(res.data && res.data.generalChampion) {
             res.data.generalChampion.forEach((g, i) => {
               let cls = i == 0 ? 'badge-gold' : (i == 1 ? 'badge-silver' : (i == 2 ? 'badge-bronze' : ''));
@@ -1040,11 +1049,11 @@
             });
           }
         }
-      } catch(err) { alert("Gagal memuat rekap juara: " + err.message); }
+      } catch(err) { alert("Gagal memuat rekap: " + err.message); }
     }
 
     // =========================================================================
-    // ⚖️ DEWAN HAKIM PANEL LOGIC
+    // ⚖️ PANEL DEWAN HAKIM (INTEGRASI DROPDOWN OTOMATIS)
     // =========================================================================
     function setupJudgeInterface(branchName) {
       const cabang = globalConfig.cabangList.find(c => c.nama === branchName);
@@ -1062,7 +1071,59 @@
             <input type="number" step="0.01" data-criteria="${c}" required class="criteria-input form-control" style="width: 65%; text-align: center; font-weight: bold;">
           </div>`;
       });
+      fetchParticipantsForJudge();
+    }
+
+    async function fetchParticipantsForJudge() {
+      const branchName = globalConfig.activeBranch;
+      const kat = document.getElementById('scoreKategori').value;
+      const selectNo = document.getElementById('scoreNo');
+      const selectNama = document.getElementById('scoreNama');
+      
+      selectNo.innerHTML = '<option value="">-- Memuat nomor... --</option>';
+      selectNama.innerHTML = '<option value="">-- Memuat nama... --</option>';
+
+      try {
+        // Ambil list peserta langsung dari backend sheet cabang bersangkutan
+        const res = await callBackendGet('getParticipantsByBranch', { branchName, kategori: kat });
+        if (res && res.success) {
+          liveParticipantsCache = res.data || [];
+          
+          selectNo.innerHTML = '<option value="">-- Pilih No Peserta --</option>';
+          selectNama.innerHTML = '<option value="">-- Pilih Nama Peserta --</option>';
+          
+          liveParticipantsCache.forEach(p => {
+            // Asumsi header sheet kolom bernama "Nomor Peserta" dan "Nama Lengkap"
+            const noPeserta = p["Nomor Peserta"] || p["No Peserta"] || p["No"];
+            const namaPeserta = p["Nama Lengkap"] || p["Nama Peserta"] || p["Nama"];
+            
+            if(noPeserta) {
+              selectNo.innerHTML += `<option value="${noPeserta}">${noPeserta}</option>`;
+              selectNama.innerHTML += `<option value="${noPeserta}">${namaPeserta}</option>`;
+            }
+          });
+        } else {
+          selectNo.innerHTML = '<option value="">-- Kosong --</option>';
+          selectNama.innerHTML = '<option value="">-- Kosong --</option>';
+        }
+      } catch (e) {
+        console.error(e);
+        selectNo.innerHTML = '<option value="">-- Gagal memuat --</option>';
+      }
+      
       loadJudgeLiveScores(branchName);
+    }
+
+    // Singkronisasi dua arah dropdown No Peserta -> Nama Peserta
+    function syncParticipantName() {
+      const val = document.getElementById('scoreNo').value;
+      document.getElementById('scoreNama').value = val;
+    }
+
+    // Singkronisasi dua arah dropdown Nama Peserta -> No Peserta
+    function syncParticipantNo() {
+      const val = document.getElementById('scoreNama').value;
+      document.getElementById('scoreNo').value = val;
     }
 
     async function loadJudgeLiveScores(branchName) {
@@ -1090,6 +1151,10 @@
     async function handleScoreSubmit(e) {
       e.preventDefault();
       const kat = document.getElementById('scoreKategori').value;
+      const selectNoEl = document.getElementById('scoreNo');
+      const noPesertaText = selectNoEl.value;
+      const namaPesertaText = selectNoEl.options[selectNoEl.selectedIndex].text;
+      
       const criteriaScores = {};
       document.querySelectorAll('.criteria-input').forEach(i => { criteriaScores[i.getAttribute('data-criteria')] = i.value; });
       
@@ -1097,8 +1162,8 @@
         const payload = {
           branchName: globalConfig.activeBranch,
           kategori: kat,
-          noPeserta: document.getElementById('scoreNo').value,
-          namaPeserta: document.getElementById('scoreNama').value,
+          noPeserta: noPesertaText,
+          namaPeserta: namaPesertaText,
           criteriaScores: criteriaScores,
           catatan: document.getElementById('scoreCatatan').value
         };
@@ -1113,18 +1178,12 @@
     }
 
     // =========================================================================
-    // 📄 EXCEL ENGINE & FORMAT F5 PRINT CONTROLLER (AKSES ADMIN KHUSUS)
+    // 📄 EXCEL & CETAK F5
     // =========================================================================
     function downloadLeaderboardXlsx() {
       const branch = document.getElementById('adminLeaderboardSelect').value;
       const kat = document.getElementById('adminLeaderboardKategori').value;
       if (!branch) { alert('Silakan pilih cabang lomba terlebih dahulu!'); return; }
-      
-      const rowEls = Array.from(document.querySelectorAll('#adminLeaderboardBody tr'));
-      if (rowEls.length === 0 || rowEls[0].innerText.includes('pilih cabang') || rowEls[0].innerText.includes('Belum ada') || rowEls[0].innerText.includes('Ugunakan filter')) {
-        alert('Tidak ada data nilai yang dapat diekspor!'); return;
-      }
-      
       const table = document.getElementById("adminLeaderboardHeader").parentElement;
       const wb = XLSX.utils.table_to_book(table, {sheet: "Peringkat Nilai"});
       XLSX.writeFile(wb, `Peringkat_MTQ_${branch.replace(/\s+/g, '_')}_${kat}.xlsx`);
@@ -1137,11 +1196,6 @@
       
       const headerCells = Array.from(document.querySelectorAll('#adminLeaderboardHeader th')).map(el => el.innerText);
       const rowEls = Array.from(document.querySelectorAll('#adminLeaderboardBody tr'));
-      
-      if (rowEls.length === 0 || rowEls[0].innerText.includes('pilih cabang') || rowEls[0].innerText.includes('Belum ada') || rowEls[0].innerText.includes('Ugunakan filter')) {
-        alert('Tidak ada data nilai yang valid untuk dicetak!'); return;
-      }
-      
       let rowsHtml = '';
       rowEls.forEach(row => {
         let cellsHtml = '';
@@ -1160,53 +1214,25 @@
       printWindow.document.write(`
         <html>
         <head>
-          <title>Cetak Nilai Format F5 - LPTQ Pasar Kemis</title>
+          <title>Cetak Format F5</title>
           <style>
-            @page { size: A4 portrait; margin: 15mm; }
-            body { font-family: 'Times New Roman', Times, serif; font-size: 10pt; color: #000; margin: 0; padding: 0; line-height: 1.4; }
-            .kop-surat { text-align: center; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 15px; }
-            .kop-title { font-size: 12pt; font-weight: bold; margin: 0; letter-spacing: 0.5px; }
-            .kop-sub { font-size: 13pt; font-weight: bold; margin: 0; }
-            .kop-address { font-size: 8.5pt; font-style: italic; margin: 4px 0 0 0; }
-            .doc-title { text-align: center; font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; text-decoration: underline; }
-            .meta-table { width: 100%; font-size: 10pt; margin-bottom: 12px; }
-            table.data-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
-            .signature-block { margin-top: 35px; width: 100%; font-size: 10pt; }
-            .signature-block td { text-align: center; vertical-align: top; }
+            body { font-family: 'Times New Roman', Times, serif; font-size: 10pt; padding: 20px; }
+            .kop { text-align: center; border-bottom: 3px double #000; padding-bottom: 5px; margin-bottom: 15px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
           </style>
         </head>
         <body>
-          <div class="kop-surat">
-            <p class="kop-title">PANITIA MUSABAQAH TILAWTIL QUR'AN (MTQ)</p>
-            <p class="kop-sub">LEMBAGA PENGEMBANGAN TILAWATIL QUR'AN (LPTQ)</p>
-            <p class="kop-sub" style="font-size: 11pt;">KECAMATAN PASAR KEMIS KABUPATEN TANGERANG</p>
-            <p class="kop-address">Sekretariat: Jl. Raya Pasar Kemis, Kec. Pasar Kemis, Tangerang, Banten 15560</p>
+          <div class="kop">
+            <h2>LPTQ KECAMATAN PASAR KEMIS</h2>
+            <p>Daftar Nilai Dan Peringkat Peserta (Format F5)</p>
           </div>
-          <div class="doc-title">DAFTAR NILAI DAN PERINGKAT PESERTA (FORMAT F5)</div>
-          <table class="meta-table">
-            <tr><td style="width: 22%; font-weight: bold;">Cabang Lomba</td><td style="width: 2%;">:</td><td>${branch}</td></tr>
-            <tr><td style="font-weight: bold;">Kategori</td><td>:</td><td>${kat}</td></tr>
-          </table>
-          <table class="data-table">
-            <thead><tr>${headersHtml}</tr></thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
-          <table class="signature-block">
-            <tr>
-              <td style="width: 55%;"></td>
-              <td>
-                Pasar Kemis, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}<br>
-                <strong>Dewan Hakim Ketua,</strong><br><br><br><br><br>
-                <strong>(....................................................)</strong>
-              </td>
-            </tr>
-          </table>
+          <p><strong>Cabang Lomba:</strong> ${branch} | <strong>Kategori:</strong> ${kat}</p>
+          <table border="1"><thead><tr>${headersHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>
         </body>
         </html>
       `);
       printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => { printWindow.print(); }, 500);
+      printWindow.print();
     }
   </script>
 </body>
