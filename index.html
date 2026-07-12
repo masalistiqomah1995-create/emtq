@@ -242,24 +242,29 @@
     if(res.success) {
       globalConfig.cabangList = res.cabangList;
       
-      // 1. RENDER DROPDOWN CABANG LOMBA
+      // Render Dropdown Cabang
       let optsCabang = '<option value="">-- Pilih Cabang --</option>';
       res.cabangList.forEach(c => { optsCabang += `<option value="${c.nama}">${c.nama}</option>`; });
       document.getElementById('regCabangLomba').innerHTML = optsCabang;
       document.getElementById('editRegCabang').innerHTML = optsCabang;
       document.getElementById('leaderboardSelect').innerHTML = optsCabang;
 
-      // 2. RENDER DROPDOWN KAFILAH/DESA SECARA DINAMIS
+      // PERBAIKAN: Render Dropdown Kafilah secara Dinamis ke form Pendaftaran & Form Edit
       let optsKafilah = '<option value="">-- Pilih Kafilah / Desa --</option>';
       if(res.kafilahList && res.kafilahList.length > 0) {
         res.kafilahList.forEach(k => { optsKafilah += `<option value="${k}">${k}</option>`; });
-      } else {
-        // Fallback jika sheet kafilah kosong
-        optsKafilah += '<option value="Desa Gelam Jaya">Desa Gelam Jaya</option><option value="Kelurahan Kuta Bumi">Kelurahan Kuta Bumi</option>';
       }
-      document.getElementById('regKafilah').innerHTML = optsKafilah;
+      
+      // Terapkan ke dropdown form pendaftaran baru
+      if(document.getElementById('regKafilah')) {
+        document.getElementById('regKafilah').innerHTML = optsKafilah;
+      }
+      // Terapkan ke dropdown form edit biodata peserta mandiri
+      if(document.getElementById('editRegKafilah')) {
+        document.getElementById('editRegKafilah').innerHTML = optsKafilah;
+      }
 
-      // 3. RENDER TABEL PESERTA
+      // Render Tabel Peserta
       const pBody = document.getElementById('publicParticipantsBody');
       pBody.innerHTML = '';
       if(res.pesertaList && res.pesertaList.length > 0) {
