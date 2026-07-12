@@ -123,9 +123,15 @@
             <div class="form-group">
               <label>Kafilah / Desa</label>
               <select id="regKafilah" required class="form-control">
-                <option value="Desa Gelam Jaya">Desa Gelam Jaya</option>
-                <option value="Kelurahan Kuta Bumi">Kelurahan Kuta Bumi</option>
-                <option value="Desa Pasar Kemis">Desa Pasar Kemis</option>
+                <option value="Kelurahan Kuta Baru">Kelurahan Kuta Baru</option>
+                <option value="Kelurahan Kutabumi">Kelurahan Kutabumi</option>
+                <option value="Desa Pangadegan">Desa Pangadegan</option>
+                <option value="Desa Pangadegan">Desa Pangadegan</option>
+                <option value="Desa Pangadegan">Desa Pangadegan</option>
+                <option value="Desa Pangadegan">Desa Pangadegan</option>
+                <option value="Desa Pangadegan">Desa Pangadegan</option>
+                <option value="Desa Pangadegan">Desa Pangadegan</option>
+                              
               </select>
             </div>
           </div>
@@ -230,36 +236,48 @@
     }
 
     async function loadPublicDashboardData() {
-      try {
-        const response = await fetch(`${API_URL}?action=getPublicDashboard`);
-        const res = await response.json();
-        if(res.success) {
-          globalConfig.cabangList = res.cabangList;
-          let opts = '<option value="">-- Pilih Cabang --</option>';
-          res.cabangList.forEach(c => { opts += `<option value="${c.nama}">${c.nama}</option>`; });
-          
-          document.getElementById('regCabangLomba').innerHTML = opts;
-          document.getElementById('editRegCabang').innerHTML = opts;
-          document.getElementById('leaderboardSelect').innerHTML = opts;
+  try {
+    const response = await fetch(`${API_URL}?action=getPublicDashboard`);
+    const res = await response.json();
+    if(res.success) {
+      globalConfig.cabangList = res.cabangList;
+      
+      // 1. RENDER DROPDOWN CABANG LOMBA
+      let optsCabang = '<option value="">-- Pilih Cabang --</option>';
+      res.cabangList.forEach(c => { optsCabang += `<option value="${c.nama}">${c.nama}</option>`; });
+      document.getElementById('regCabangLomba').innerHTML = optsCabang;
+      document.getElementById('editRegCabang').innerHTML = optsCabang;
+      document.getElementById('leaderboardSelect').innerHTML = optsCabang;
 
-          const pBody = document.getElementById('publicParticipantsBody');
-          pBody.innerHTML = '';
-          if(res.pesertaList && res.pesertaList.length > 0) {
-            res.pesertaList.forEach(p => {
-              pBody.innerHTML += `<tr>
-                <td style="font-weight:700;">${p.nomorPeserta}</td>
-                <td><strong>${p.namaPeserta}</strong></td>
-                <td>${p.cabangLomba}</td>
-                <td>${p.golongan}</td>
-                <td>${p.kafilah}</td>
-              </tr>`;
-            });
-          } else {
-            pBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">Belum ada data pendaftar.</td></tr>';
-          }
-        }
-      } catch(e) { console.error("Gagal sinkronisasi data publik.", e); }
+      // 2. RENDER DROPDOWN KAFILAH/DESA SECARA DINAMIS
+      let optsKafilah = '<option value="">-- Pilih Kafilah / Desa --</option>';
+      if(res.kafilahList && res.kafilahList.length > 0) {
+        res.kafilahList.forEach(k => { optsKafilah += `<option value="${k}">${k}</option>`; });
+      } else {
+        // Fallback jika sheet kafilah kosong
+        optsKafilah += '<option value="Desa Gelam Jaya">Desa Gelam Jaya</option><option value="Kelurahan Kuta Bumi">Kelurahan Kuta Bumi</option>';
+      }
+      document.getElementById('regKafilah').innerHTML = optsKafilah;
+
+      // 3. RENDER TABEL PESERTA
+      const pBody = document.getElementById('publicParticipantsBody');
+      pBody.innerHTML = '';
+      if(res.pesertaList && res.pesertaList.length > 0) {
+        res.pesertaList.forEach(p => {
+          pBody.innerHTML += `<tr>
+            <td style="font-weight:700;">${p.nomorPeserta}</td>
+            <td><strong>${p.namaPeserta}</strong></td>
+            <td>${p.cabangLomba}</td>
+            <td>${p.golongan}</td>
+            <td>${p.kafilah}</td>
+          </tr>`;
+        });
+      } else {
+        pBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">Belum ada data pendaftar.</td></tr>';
+      }
     }
+  } catch(e) { console.error("Gagal sinkronisasi data publik.", e); }
+}
 
     async function handleRegistrationSubmit(e) {
       e.preventDefault();
