@@ -1,16 +1,636 @@
-<script>
-    // ==========================================
-    // 🔴 MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA
-    // ==========================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbxjkxcwurQw34f6cBfMO2DTdF6H9mwGsSlQ_pT8dQZ3sB4VmcGm0dLQcMp2SufalCDv/exec"; 
-    // ^ Ganti dengan URL Web App baru Anda setelah di-deploy ulang sebagai 'Anyone'
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem MTQ - LPTQ Kecamatan Pasar Kemis</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    let globalConfig = { cabangList: [] };
+  <style>
+    /* RESET & DASAR */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background-color: #f0f4f1; 
+      color: #2e3e35; 
+      line-height: 1.6;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .hidden { display: none !important; }
+
+    /* BRANDING HEADER Khas LPTQ */
+    header {
+      background: linear-gradient(135deg, #0f291e 0%, #1b4332 100%);
+      color: #ffffff;
+      padding: 24px;
+      border-bottom: 5px solid #d4af37;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+    }
+    @media (min-width: 640px) {
+      .header-content { flex-direction: row; text-align: left; }
+    }
+    .emblem-wrapper {
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 12px;
+      border: 2px solid #d4af37;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .emblem-fallback {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0d3822;
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #d4af37;
+    }
+    .emblem-fallback i { color: #d4af37; font-size: 1.25rem; }
+    .header-text h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #d4af37;
+      letter-spacing: 0.5px;
+    }
+    .header-text p { font-size: 0.85rem; color: #cbd5e1; font-weight: 500; }
+
+    /* STATUS AKSES */
+    #userStatus {
+      font-size: 0.8rem;
+      color: #fef08a;
+      background: rgba(15, 41, 30, 0.6);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      display: inline-flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    /* NAVIGATION BAR TABS */
+    nav {
+      background: #ffffff;
+      border-bottom: 2px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .nav-container {
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .nav-tab {
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 16px 24px;
+      color: #64748b;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 4px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-tab:hover { color: #1b4332; background: #f8fafc; }
+    .tab-active {
+      border-bottom-color: #d4af37 !important;
+      color: #1b4332 !important;
+      background: #f0fdf4;
+    }
+
+    /* CARD COMPONENT */
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      padding: 24px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #1b4332;
+      border-bottom: 2px solid #f0fdf4;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* GRIDS */
+    .grid-1-3 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    @media (min-width: 768px) {
+      .grid-1-3 { grid-template-columns: 1fr 2fr; }
+    }
+
+    /* FORM & INPUTS */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: #f8fafc;
+      color: #334155;
+    }
+    .form-control:focus {
+      background: #ffffff;
+      border-color: #1b4332;
+      box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.15);
+    }
+
+    /* MODERN TABLES */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+      color: #1b4332;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-bottom: 2px solid #cbd5e1;
+    }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+    tr:hover td { background: #f8fafc; }
+
+    /* UTILITY BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-emerald { background: #1b4332; color: #ffffff; }
+    .btn-emerald:hover { background: #0f291e; }
+    .btn-gold { background: #d4af37; color: #0f291e; }
+    .btn-gold:hover { background: #c5a030; }
+    .btn-blue { background: #2563eb; color: #ffffff; }
+    .btn-blue:hover { background: #1d4ed8; }
+    .btn-red { background: #dc2626; color: #ffffff; }
+    .btn-red:hover { background: #b91c1c; }
+
+    /* BADGES */
+    .badge-rank {
+      width: 24px;
+      height: 24px;
+      background: #cbd5e1;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #334155;
+    }
+    .badge-gold { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
+    .badge-silver { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+    .badge-bronze { background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container header-content">
+      <div class="emblem-wrapper">
+        <div class="emblem-fallback">
+          <i class="fa-solid fa-star-and-crescent"></i>
+          <strong>LPTQ PASAR KEMIS</strong>
+        </div>
+      </div>
+      <div class="header-text">
+        <h1>E-SISTEM PENILAIAN & PENDAFTARAN MTQ</h1>
+        <p>Lembaga Pengembangan Tilawatil Qur'an (LPTQ) Kecamatan Pasar Kemis Kab. Tangerang</p>
+        <div id="userStatus">
+          <i class="fa-solid fa-circle-dot mr-2"></i> Public Mode
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="container nav-container">
+      <button onclick="switchTab('home')" id="tab-home" class="nav-tab">
+        <i class="fa-solid fa-house"></i>Beranda
+      </button>
+      <button onclick="switchTab('pendaftaran')" id="tab-pendaftaran" class="nav-tab">
+        <i class="fa-solid fa-user-plus"></i>Pendaftaran
+      </button>
+      <button onclick="switchTab('login')" id="tab-login" class="nav-tab">
+        <i class="fa-solid fa-right-to-bracket"></i>Login
+      </button>
+      <button onclick="switchTab('admin-panel')" id="tab-admin" class="nav-tab hidden">
+        <i class="fa-solid fa-user-gear"></i>Admin
+      </button>
+      <button onclick="switchTab('judge-panel')" id="tab-judge" class="nav-tab hidden">
+        <i class="fa-solid fa-gavel"></i>Hakim
+      </button>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <section id="content-home">
+      <div class="grid-1-3">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-list-check"></i> Cabang Lomba</div>
+          <ul id="homeCabangList" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+            <li style="color: #94a3b8;">Memuat data cabang...</li>
+          </ul>
+        </div>
+        
+        <div class="card">
+          <div class="card-title">
+            <i class="fa-solid fa-trophy"></i> Papan Peringkat Sementara Cabang
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+            <select id="leaderboardSelect" onchange="triggerLeaderboardLoad()" class="form-control" style="max-width: 200px;"></select>
+            <select id="leaderboardKategori" onchange="triggerLeaderboardLoad()" class="form-control" style="max-width: 150px;">
+              <option value="PUTRA">Kategori: PUTRA</option>
+              <option value="PUTRI">Kategori: PUTRI</option>
+            </select>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead id="leaderboardHeader"></thead>
+              <tbody id="leaderboardBody">
+                <tr><td colspan="10" style="text-align: center; padding: 20px; color: #94a3b8;">Silakan pilih cabang lomba dan kategori.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="content-pendaftaran" class="hidden">
+      <div class="card" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-title"><i class="fa-solid fa-file-signature"></i> Formulir Pendaftaran Peserta MTQ</div>
+        <form id="pendaftaranForm" onsubmit="handleRegistrationSubmit(event)">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div class="form-group">
+              <label>Cabang Lomba</label>
+              <select id="regCabangLomba" required class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label>Kategori</label>
+              <select id="regKategori" required class="form-control">
+                <option value="PUTRA">PUTRA</option>
+                <option value="PUTRI">PUTRI</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Golongan Lomba</label>
+              <input type="text" id="regGolongan" required class="form-control" placeholder="Contoh: Dewasa / Anak">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div class="form-group">
+              <label>Nama Lengkap Peserta</label>
+              <input type="text" id="regNamaPeserta" required class="form-control" placeholder="Nama sesuai akte">
+            </div>
+            <div class="form-group">
+              <label>NIK (Nomor Induk Kependudukan)</label>
+              <input type="number" id="regNik" required class="form-control" placeholder="16 Digit NIK">
+            </div>
+            <div class="form-group">
+              <label>Kafilah / Desa Pilihan</label>
+              <select id="regKafilah" required class="form-control" style="font-weight: bold;">
+                <option value="">-- Pilih Kafilah Desa/Kel --</option>
+                <option value="Desa Gelam Jaya">Desa Gelam Jaya</option>
+                <option value="Kelurahan Kuta Baru">Kelurahan Kuta Baru</option>
+                <option value="Kelurahan Kuta Jaya">Kelurahan Kuta Jaya</option>
+                <option value="Kelurahan Kutabumi">Kelurahan Kutabumi</option>
+                <option value="Desa Pangadegan">Desa Pangadegan</option>
+                <option value="Desa Pasar Kemis">Desa Pasar Kemis</option>
+                <option value="Desa Sindangsari">Desa Sindangsari</option>
+                <option value="Desa Suka Asih">Desa Suka Asih</option>
+                <option value="Desa Sukamantri">Desa Sukamantri</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div class="form-group">
+              <label>Tempat Lahir</label>
+              <input type="text" id="regTempatLahir" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Tanggal Lahir</label>
+              <input type="date" id="regTanggalLahir" required class="form-control">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div class="form-group">
+              <label>Kampung / Jalan / Perumahan</label>
+              <input type="text" id="regKampung" required class="form-control" placeholder="Contoh: Kp. Pasar Baru">
+            </div>
+            <div class="form-group">
+              <label>RT / RW</label>
+              <input type="text" id="regRtRw" required class="form-control" placeholder="003/001">
+            </div>
+            <div class="form-group">
+              <label>Kelurahan / Desa</label>
+              <select id="regDesa" required class="form-control" onchange="syncKafilahWithDesa(this)">
+                <option value="">-- Pilih Desa --</option>
+                <option value="Gelam Jaya">Gelam Jaya</option>
+                <option value="Kuta Baru">Kuta Baru</option>
+                <option value="Kuta Jaya">Kuta Jaya</option>
+                <option value="Kutabumi">Kutabumi</option>
+                <option value="Pangadegan">Pangadegan</option>
+                <option value="Pasar Kemis">Pasar Kemis</option>
+                <option value="Sindangsari">Sindangsari</option>
+                <option value="Suka Asih">Suka Asih</option>
+                <option value="Sukamantri">Sukamantri</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Kecamatan</label>
+              <input type="text" id="regKecamatan" value="Pasar Kemis" readonly class="form-control" style="background-color: #f1f5f9; font-weight: 700;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div class="form-group">
+              <label>Berkas Akte Kelahiran</label>
+              <input type="file" id="fileAkte" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Berkas Kartu Keluarga</label>
+              <input type="file" id="fileKk" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Foto Resmi Peserta (3x4)</label>
+              <input type="file" id="fileFoto" required class="form-control">
+            </div>
+          </div>
+
+          <div id="regStatusContainer" class="hidden" style="background: #eff6ff; color: #1e40af; padding: 12px; border-radius: 8px; font-weight: 700; margin-bottom: 16px; text-align: center;">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Sedang memproses berkas asinkronus pendaftaran...
+          </div>
+
+          <button type="submit" id="regBtn" class="btn btn-emerald" style="width: 100%; padding: 12px 20px; font-size: 1rem;"><i class="fa-solid fa-paper-plane"></i> Kirim Berkas Registrasi</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="content-login" class="hidden">
+      <div class="card" style="max-width: 400px; margin: 40px auto;">
+        <div class="card-title" style="justify-content: center;"><i class="fa-solid fa-shield-halved"></i> Login Dewan Hakim & Admin</div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="username" required class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" required class="form-control">
+          </div>
+          <button type="submit" class="btn btn-emerald" style="width: 100%;"><i class="fa-solid fa-right-to-bracket"></i> Masuk Sistem</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="content-admin-panel" class="hidden space-y-6">
+      <div class="card" style="background: #1b4332; color: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800; color: #d4af37;"><i class="fa-solid fa-user-gear"></i> Portal Manajemen Admin</h2>
+          <p style="font-size: 0.8rem; color: #cbd5e1;">Kelola data konfigurasi cabang lomba, kriteria penilaian, dan hasil keputusan juara</p>
+        </div>
+        <button onclick="logout()" class="btn btn-red"><i class="fa-solid fa-power-off"></i> Logout</button>
+      </div>
+
+      <div class="card" style="border: 1px solid #fef08a; background: #fffdf5;">
+        <div class="card-title" style="color: #854d0e;">
+          <i class="fa-solid fa-crown"></i> Rekap Pemenang & Klasemen Juara Umum Terpadu (Akses Admin)
+          <button onclick="refreshJuaraPemenang()" class="btn btn-gold" style="margin-left: auto; padding: 6px 12px; font-size: 0.75rem;">
+            <i class="fa-solid fa-arrows-rotate"></i> Perbarui Rekap Juara
+          </button>
+        </div>
+        
+        <div class="grid-1-3">
+          <div>
+            <h4 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 10px; color: #1b4332;">Kafilah Juara Umum</h4>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Nama Kafilah (Desa)</th>
+                    <th style="text-align: center;">Total Poin</th>
+                  </tr>
+                </thead>
+                <tbody id="generalChampionBody">
+                  <tr><td colspan="3" style="text-align: center; color: #94a3b8;">Ketuk "Perbarui Rekap Juara" untuk memuat rekap.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div>
+            <h4 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 10px; color: #1b4332;">Rekap Juara Terbaik Per Cabang Lomba</h4>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cabang Lomba</th>
+                    <th>Kat.</th>
+                    <th>Juara 1 (Terbaik 1)</th>
+                    <th>Juara 2 (Terbaik 2)</th>
+                    <th>Juara 3 (Terbaik 3)</th>
+                  </tr>
+                </thead>
+                <tbody id="compiledWinnersBody">
+                  <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Data rekap juara belum disinkronkan.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="border: 1px solid #93c5fd; background: #f0f7ff;">
+        <div class="card-title" style="color: #1e3a8a;">
+          <i class="fa-solid fa-print"></i> Stasiun Cetak & Ekspor Excel (Akses Admin)
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+          <select id="adminLeaderboardSelect" onchange="triggerAdminLeaderboardLoad()" class="form-control" style="max-width: 250px; border-color: #3b82f6;"></select>
+          <select id="adminLeaderboardKategori" onchange="triggerAdminLeaderboardLoad()" class="form-control" style="max-width: 150px; border-color: #3b82f6;">
+            <option value="PUTRA">Kategori: PUTRA</option>
+            <option value="PUTRI">Kategori: PUTRI</option>
+          </select>
+          <button onclick="downloadLeaderboardXlsx()" class="btn btn-emerald" style="padding: 10px 16px;"><i class="fa-solid fa-file-excel"></i> Ekspor ke .xlsx</button>
+          <button onclick="printLeaderboard()" class="btn btn-blue" style="padding: 10px 16px;"><i class="fa-solid fa-print"></i> Cetak Format F5</button>
+        </div>
+        <div class="table-responsive" style="border-color: #93c5fd;">
+          <table>
+            <thead id="adminLeaderboardHeader" style="background-color: #eff6ff;"></thead>
+            <tbody id="adminLeaderboardBody">
+              <tr><td colspan="10" style="text-align: center; padding: 20px; color: #1e40af;">Gunakan filter di atas untuk meninjau data peringkat sebelum melakukan aksi cetak/ekspor.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-1-3">
+        <div class="card">
+          <div class="card-title" id="formTitle"><i class="fa-solid fa-plus-circle"></i> Tambah Cabang Lomba</div>
+          <form id="cabangForm" onsubmit="handleSaveCabang(event)">
+            <input type="hidden" id="cabangId">
+            <div class="form-group">
+              <label>Nama Cabang Lomba</label>
+              <input type="text" id="cabangNama" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Kriteria Penilaian (Pisahkan koma)</label>
+              <textarea id="cabangKriteria" required rows="3" class="form-control" placeholder="Tajwid, Fashahah, Lagu"></textarea>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="submit" class="btn btn-emerald" style="flex: 1;">Simpan Cabang</button>
+              <button type="button" onclick="clearCabangForm()" class="btn" style="background: #e2e8f0;">Reset</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-table"></i> Daftar Konfigurasi Cabang</div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Cabang Lomba</th>
+                  <th>Kriteria</th>
+                  <th style="text-align: center;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="adminCabangTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="content-judge-panel" class="hidden">
+      <div class="card" style="background: #1b4332; color: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-left: 6px solid #d4af37;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800; color: #d4af37;"><i class="fa-solid fa-gavel"></i> Panel Penilaian Dewan Hakim</h2>
+          <p style="font-size: 0.8rem;">Cabang Tugas: <strong id="judgeBranchName" style="color: #fef08a;">-</strong></p>
+        </div>
+        <button onclick="logout()" class="btn btn-red">Keluar Panel</button>
+      </div>
+
+      <div class="grid-1-3">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-pen-to-square"></i> Borang Input Skor</div>
+          <form id="scoreForm" onsubmit="handleScoreSubmit(event)">
+            <div class="form-group">
+              <label>Kategori</label>
+              <select id="scoreKategori" required onchange="loadJudgeLiveScores(globalConfig.activeBranch)" class="form-control" style="font-weight: 700;">
+                <option value="PUTRA">PUTRA</option>
+                <option value="PUTRI">PUTRI</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Nomor Urut Peserta</label>
+              <input type="text" id="scoreNo" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Nama Lengkap Peserta</label>
+              <input type="text" id="scoreNama" required class="form-control">
+            </div>
+            <div id="dynamicCriteriaContainer" style="padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px;"></div>
+            <div class="form-group">
+              <label>Catatan Hakim</label>
+              <textarea id="scoreCatatan" rows="2" class="form-control"></textarea>
+            </div>
+            <button type="submit" class="btn btn-emerald" style="width: 100%;"><i class="fa-solid fa-circle-check"></i> Kunci & Kirim Skor</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-square-poll-horizontal"></i> Reviu Hasil Skor Sementara</div>
+          <div class="table-responsive">
+            <table>
+              <thead id="judgeTableValuesHeader"></thead>
+              <tbody id="judgeTableValuesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer style="text-align: center; padding: 40px 20px; font-size: 0.8rem; color: #64748b; border-top: 1px solid #cbd5e1; margin-top: 40px;">
+    &copy; 2026 Lembaga Pengembangan Tilawatil Qur'an (LPTQ) Kecamatan Pasar Kemis Kab. Tangerang.
+  </footer>
+
+  <script>
+    // =========================================================================
+    // 🔴 MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    // =========================================================================
+    const API_URL = "https://script.google.com/macros/s/AKfycbxjkxcwurQw34f6cBfMO2DTdF6H9mwGsSlQ_pT8dQZ3sB4VmcGm0dLQcMp2SufalCDv/exec"; 
+
+    let globalConfig = { cabangList: [], activeBranch: '' };
     let currentUser = { loggedIn: false, role: 'Public', name: '', branch: 'Semua' };
 
-    // ==========================================
-    // ⚙️ ENGINE UTAMA: HTTP REST FETCH API
-    // ==========================================
+    // =========================================================================
+    // ⚙️ ENGINE UTAMA: HTTP REST FETCH API CLIENT (MENDUKUNG CORS PENUH)
+    // =========================================================================
     async function callBackendGet(action, params = {}) {
       try {
         const urlParams = new URLSearchParams({ action, ...params }).toString();
@@ -44,32 +664,47 @@
       loadInitialDashboardData();
     });
 
-    // ==========================================
-    // 💻 FUNGSI LOGIKA ANTARMUKA (NAVIGASI & TAB)
-    // ==========================================
+    // =========================================================================
+    // 💻 NAVIGATION & TAB CONTROLLER SYSTEM
+    // =========================================================================
     function switchTab(tabId) {
-      ['home', 'pendaftaran', 'login', 'admin-panel', 'judge-panel'].forEach(id => {
+      const sections = ['home', 'pendaftaran', 'login', 'admin-panel', 'judge-panel'];
+      
+      sections.forEach(id => {
         const section = document.getElementById('content-' + id);
-        if(section) section.classList.add('hidden');
-        const tabBtn = document.getElementById('tab-' + id);
+        if(section) {
+          section.style.setProperty('display', 'none', 'important');
+          section.classList.add('hidden');
+        }
+        const tabBtnId = id === 'admin-panel' ? 'admin' : (id === 'judge-panel' ? 'judge' : id);
+        const tabBtn = document.getElementById('tab-' + tabBtnId);
         if(tabBtn) tabBtn.classList.remove('tab-active');
       });
       
       const targetSection = document.getElementById('content-' + tabId);
-      if(targetSection) targetSection.classList.remove('hidden');
-      const targetTab = document.getElementById('tab-' + tabId);
+      if(targetSection) {
+        targetSection.style.setProperty('display', 'block', 'important');
+        targetSection.classList.remove('hidden');
+      }
+      const activeBtnId = tabId === 'admin-panel' ? 'admin' : (tabId === 'judge-panel' ? 'judge' : tabId);
+      const targetTab = document.getElementById('tab-' + activeBtnId);
       if(targetTab) targetTab.classList.add('tab-active');
 
+      if(tabId === 'home') {
+        loadInitialDashboardData();
+      }
       if(tabId === 'admin-panel' && currentUser.role === 'Admin') {
         loadAdminCabangTable();
+        refreshJuaraPemenang();
       }
     }
 
+    // Load Data Awal Dashboard Musabaqah via GET
     async function loadInitialDashboardData() {
       try {
         const res = await callBackendGet('getDashboardData');
         if (res && res.success) {
-          globalConfig.cabangList = res.data.cabangList;
+          globalConfig.cabangList = res.data ? res.data.cabangList : res.cabangList;
           renderCabangLists();
         }
       } catch (err) {
@@ -84,6 +719,10 @@
       const adminLeadSelect = document.getElementById('adminLeaderboardSelect');
       
       if(homeList) homeList.innerHTML = '';
+      
+      const prevSelectVal = leadSelect ? leadSelect.value : '';
+      const prevAdminSelectVal = adminLeadSelect ? adminLeadSelect.value : '';
+
       if(regSelect) regSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>';
       if(leadSelect) leadSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>';
       if(adminLeadSelect) adminLeadSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>';
@@ -91,8 +730,9 @@
       if(globalConfig.cabangList && globalConfig.cabangList.length > 0) {
         globalConfig.cabangList.forEach(c => {
           if(homeList) {
-            homeList.innerHTML += `<li style="padding:10px; background:#f8fafc; border-radius:8px; border-left:4px solid #d4af37; margin-bottom:8px; list-style:none;">
-              <strong>${c.nama}</strong><br><small style="color:#64748b;">Kriteria: ${c.kriteria}</small>
+            const displayKriteria = c.kriteria && c.kriteria.trim() !== "" ? c.kriteria : "Belum Ditentukan";
+            homeList.innerHTML += `<li style="padding:10px; background:#f8fafc; border-radius:8px; border-left:4px solid #1b4332; margin-bottom:8px; list-style:none; font-size: 0.8rem; font-weight: 700; color: #1e293b;">
+              <strong>${c.nama}</strong><span style="display: block; font-size: 0.7rem; font-weight: 500; color:#64748b; margin-top: 2px;">Kriteria: ${displayKriteria}</span>
             </li>`;
           }
           const opt = `<option value="${c.nama}">${c.nama}</option>`;
@@ -100,36 +740,69 @@
           if(leadSelect) leadSelect.innerHTML += opt;
           if(adminLeadSelect) adminLeadSelect.innerHTML += opt;
         });
+        
+        if (leadSelect && prevSelectVal) leadSelect.value = prevSelectVal;
+        if (adminLeadSelect && prevAdminSelectVal) adminLeadSelect.value = prevAdminSelectVal;
+      } else {
+        if(homeList) homeList.innerHTML = '<li style="color: #94a3b8;">Tidak ada cabang aktif.</li>';
       }
     }
 
-    // ==========================================
-    // 📊 KLASEMEN & SKOR (LEADERBOARD)
-    // ==========================================
+    function syncKafilahWithDesa(selectEl) {
+      const desaValue = selectEl.value;
+      const kafilahSelect = document.getElementById('regKafilah');
+      if (!desaValue || !kafilahSelect) return;
+      
+      const isKelurahan = ["Kuta Baru", "Kuta Jaya", "Kutabumi"].includes(desaValue);
+      const prefix = isKelurahan ? "Kelurahan" : "Desa";
+      kafilahSelect.value = `${prefix} ${desaValue}`;
+    }
+
+    // =========================================================================
+    // 📊 KLASEMEN LEADERBOARD & RENDER ENGINES
+    // =========================================================================
     async function triggerLeaderboardLoad() {
       const branch = document.getElementById('leaderboardSelect').value;
       const kat = document.getElementById('leaderboardKategori').value;
-      if (!branch) return;
+      loadLeaderboard(branch, kat, 'leaderboardHeader', 'leaderboardBody');
+    }
+
+    async function triggerAdminLeaderboardLoad() {
+      const branch = document.getElementById('adminLeaderboardSelect').value;
+      const kat = document.getElementById('adminLeaderboardKategori').value;
+      loadLeaderboard(branch, kat, 'adminLeaderboardHeader', 'adminLeaderboardBody');
+    }
+
+    async function loadLeaderboard(branchName, kategori, headId, bodyId) {
+      const thead = document.getElementById(headId);
+      const tbody = document.getElementById(bodyId);
+      if (!branchName) { 
+        if(thead) thead.innerHTML = ''; 
+        if(tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: #94a3b8;">Silakan pilih cabang lomba.</td></tr>'; 
+        return; 
+      }
       
-      const body = document.getElementById('leaderboardBody');
-      const head = document.getElementById('leaderboardHeader');
-      body.innerHTML = `<tr><td colspan="10" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat klasemen...</td></tr>`;
+      if(tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: #1b4332; font-weight: bold;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat klasemen terbaru...</td></tr>';
       
       try {
-        const res = await callBackendGet('getBranchScores', { branchName: branch, kategori: kat });
-        if(res.success) {
-          renderTableData(res.data, head, body);
+        const res = await callBackendGet('getBranchScores', { branchName, kategori });
+        if(res && res.success) {
+          renderTableData(res.data || res, thead, tbody);
+        } else {
+          if(tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:red;">Gagal: ${res.message}</td></tr>`;
         }
       } catch (err) {
-        body.innerHTML = `<tr><td colspan="10" style="color:red; text-align:center;">Gagal memuat: ${err.message}</td></tr>`;
+        if(tbody) tbody.innerHTML = `<tr><td colspan="10" style="color:red; text-align:center;">Gagal memuat: ${err.message}</td></tr>`;
       }
     }
 
     function renderTableData(scoreData, headEl, bodyEl) {
+      if(!headEl || !bodyEl) return;
       headEl.innerHTML = '';
       bodyEl.innerHTML = '';
-      if(!scoreData.headers || scoreData.headers.length === 0) {
-        bodyEl.innerHTML = `<tr><td style="text-align:center; padding: 20px;">Belum ada record data nilai untuk cabang ini.</td></tr>`;
+      
+      if(!scoreData.headers || scoreData.headers.length === 0 || !scoreData.rows || scoreData.rows.length === 0) {
+        bodyEl.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 20px; color: #94a3b8;">Belum ada record data nilai untuk cabang ini.</td></tr>`;
         return;
       }
       
@@ -142,7 +815,7 @@
         let br = '<tr>';
         scoreData.headers.forEach(h => {
           let val = r[h] !== undefined ? r[h] : '';
-          if (h === 'Peringkat') {
+          if (h === 'Peringkat' || h === 'Rank') {
             let cls = val == 1 ? 'badge-gold' : (val == 2 ? 'badge-silver' : (val == 3 ? 'badge-bronze' : ''));
             br += `<td><span class="badge-rank ${cls}">${val}</span></td>`;
           } else {
@@ -154,9 +827,9 @@
       });
     }
 
-    // ==========================================
-    // 🔐 OTENTIKASI & SECURITY LOGIN
-    // ==========================================
+    // =========================================================================
+    // 🔐 AUTHENTICATION SYSTEM
+    // =========================================================================
     async function handleLogin(e) {
       e.preventDefault();
       const user = document.getElementById('username').value;
@@ -164,46 +837,49 @@
       
       try {
         const res = await callBackendPost('verifyLogin', { username: user, password: pass });
-        if(res.success) {
+        if(res && res.success) {
           currentUser = { loggedIn: true, role: res.role, name: res.name, branch: res.branch };
-          document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-user-shield"></i> Mode: ${res.name} (${res.role})`;
+          document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-user-shield text-amber-300 mr-2"></i> Role: ${res.role}`;
           document.getElementById('loginForm').reset();
           
           if(res.role === 'Admin') {
             document.getElementById('tab-admin').classList.remove('hidden');
+            loadAdminCabangTable();
             switchTab('admin-panel');
           } else {
             document.getElementById('tab-judge').classList.remove('hidden');
+            document.getElementById('judgeBranchName').innerText = res.branch;
+            globalConfig.activeBranch = res.branch;
+            setupJudgeInterface(res.branch);
             switchTab('judge-panel');
-            initJudgePanel();
           }
         } else {
-          alert(res.message);
+          alert(res.message || "Gagal melakukan verifikasi masuk.");
         }
       } catch (err) {
-        alert("Autentikasi gagal: " + err.message);
+        alert("Autentikasi gagal akibat kendala jaringan: " + err.message);
       }
     }
 
     function logout() {
       currentUser = { loggedIn: false, role: 'Public', name: '', branch: 'Semua' };
-      document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-circle-dot"></i> Public Mode`;
+      document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-circle-dot mr-2"></i> Public Mode`;
       document.getElementById('tab-admin').classList.add('hidden');
       document.getElementById('tab-judge').classList.add('hidden');
       switchTab('home');
     }
 
-    // ==========================================
-    // 📝 SUBMIT DATA PENDAFTARAN & FILE ENCODE
-    // ==========================================
+    // =========================================================================
+    // 📝 SUBMIT DATA PENDAFTARAN & FILE ENCODE PROMISES
+    // =========================================================================
     function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        if(!file) resolve({file: null, name: null, type: null});
+      return new Promise((resolve) => {
+        if(!file) resolve({file: '', name: '', type: ''});
         else {
           const reader = new FileReader();
           reader.readAsDataURL(file);
           reader.onload = () => resolve({ file: reader.result.split(',')[1], name: file.name, type: file.type });
-          reader.onerror = error => reject(error);
+          reader.onerror = () => resolve({file: '', name: '', type: ''});
         }
       });
     }
@@ -214,7 +890,7 @@
       const btn = document.getElementById('regBtn');
       
       if(statusCont) statusCont.classList.remove('hidden');
-      btn.disabled = true;
+      if(btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
 
       try {
         const akte = await fileToBase64(document.getElementById('fileAkte').files[0]);
@@ -239,7 +915,7 @@
           fotoFile: foto.file, fotoName: foto.name, fotoType: foto.type
         };
 
-        const res = await callBackendPost('registerParticipant', { formData });
+        const res = await callBackendPost('submitPendaftaran', formData);
         alert(res.message);
         if(res.success) {
           document.getElementById('pendaftaranForm').reset();
@@ -249,36 +925,38 @@
         alert("Terjadi kegagalan pendaftaran sistem: " + err.message);
       } finally {
         if(statusCont) statusCont.classList.add('hidden');
-        btn.disabled = false;
+        if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
       }
     }
 
-    function syncKafilahWithDesa(selectEl) {
-      if (selectEl.value) {
-        const kafilahInput = document.getElementById('regKafilah');
-        if(kafilahInput) kafilahInput.value = "Desa " + selectEl.value;
-      }
-    }
-
-    // ==========================================
-    // 🛠️ PANEL CONTROL ADMIN & JUARA UMUM
-    // ==========================================
+    // =========================================================================
+    // 🛠️ PANEL MANAJEMEN DATA ADMIN
+    // =========================================================================
     async function loadAdminCabangTable() {
       const tableBody = document.getElementById('adminCabangTable');
       if(!tableBody) return;
-      tableBody.innerHTML = '';
+      tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr>';
       
-      globalConfig.cabangList.forEach(c => {
-        tableBody.innerHTML += `<tr>
-          <td>${c.id}</td>
-          <td><strong>${c.nama}</strong></td>
-          <td>${c.kriteria}</td>
-          <td style="text-align:center;">
-            <button onclick="editCabang('${c.id}', '${c.nama}', '${c.kriteria}')" class="btn btn-gold" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-pen"></i></button>
-            <button onclick="deleteCabangClick('${c.id}', '${c.nama}')" class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>`;
-      });
+      try {
+        const res = await callBackendGet('getDashboardData');
+        if (res && res.success) {
+          globalConfig.cabangList = res.data ? res.data.cabangList : res.cabangList;
+          tableBody.innerHTML = '';
+          globalConfig.cabangList.forEach(c => {
+            tableBody.innerHTML += `<tr>
+              <td style="font-weight: 500; color: #64748b;">${c.id}</td>
+              <td><strong>${c.nama}</strong></td>
+              <td>${c.kriteria ? c.kriteria : "Belum Ditentukan"}</td>
+              <td style="text-align:center;">
+                <button onclick="editCabang('${c.id}', '${c.nama}', '${c.kriteria}')" class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                <button onclick="deleteCabangClick('${c.id}', '${c.nama}')" class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-trash"></i> Hapus</button>
+              </td>
+            </tr>`;
+          });
+        }
+      } catch(e) {
+        tableBody.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center;">Gagal sinkronisasi data tabel admin.</td></tr>';
+      }
     }
 
     async function handleSaveCabang(e) {
@@ -291,8 +969,7 @@
         const res = await callBackendPost('saveCabang', { id, nama, kriteria });
         alert(res.message);
         clearCabangForm();
-        await loadInitialDashboardData();
-        loadAdminCabangTable();
+        await loadAdminCabangTable();
       } catch(err) { alert(err.message); }
     }
 
@@ -301,8 +978,7 @@
       try {
         const res = await callBackendPost('deleteCabang', { id, nama });
         alert(res.message);
-        await loadInitialDashboardData();
-        loadAdminCabangTable();
+        await loadAdminCabangTable();
       } catch(err) { alert(err.message); }
     }
 
@@ -311,6 +987,7 @@
       document.getElementById('cabangNama').value = nama;
       document.getElementById('cabangKriteria').value = kriteria;
       document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Cabang Lomba';
+      document.getElementById('cabangForm').scrollIntoView({ behavior: 'smooth' });
     }
 
     function clearCabangForm() {
@@ -323,33 +1000,213 @@
       const wBody = document.getElementById('compiledWinnersBody');
       const gBody = document.getElementById('generalChampionBody');
       if(wBody) wBody.innerHTML = `<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Menghitung skor...</td></tr>`;
+      if(gBody) gBody.innerHTML = `<tr><td colspan="3" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Menghitung skor...</td></tr>`;
       
       try {
         const res = await callBackendGet('syncAndGetWinners');
-        if(res.success && wBody && gBody) {
+        if(res && res.success && wBody && gBody) {
           wBody.innerHTML = '';
           gBody.innerHTML = '';
           
-          res.data.winners.forEach(w => {
-            wBody.innerHTML += `<tr>
-              <td><strong>${w.cabang}</strong></td>
-              <td>${w.kategori}</td>
-              <td>${w.juara1}</td>
-              <td>${w.juara2}</td>
-              <td>${w.juara3}</td>
-            </tr>`;
-          });
+          if(res.data && res.data.winners) {
+            res.data.winners.forEach(w => {
+              wBody.innerHTML += `<tr style="border-bottom: 1px solid #f1f5f9;">
+                <td><strong>${w.cabang}</strong></td>
+                <td style="font-weight: 700; color: #0284c7; text-align: center;">${w.kategori}</td>
+                <td>
+                  <div style="font-weight: 800; color: #b45309;">${w.j1.name}</div>
+                  <div style="font-size: 0.7rem; color: #64748b;">${w.j1.kafilah} (${w.j1.score})</div>
+                </td>
+                <td>
+                  <div style="font-weight: 700; color: #475569;">${w.j2.name}</div>
+                  <div style="font-size: 0.7rem; color: #64748b;">${w.j2.kafilah} (${w.j2.score})</div>
+                </td>
+                <td>
+                  <div style="font-weight: 700; color: #7c2d12;">${w.j3.name}</div>
+                  <div style="font-size: 0.7rem; color: #64748b;">${w.j3.kafilah} (${w.j3.score})</div>
+                </td>
+              </tr>`;
+            });
+          }
 
-          res.data.generalChampion.forEach((g, i) => {
-            let cls = i == 0 ? 'badge-gold' : (i == 1 ? 'badge-silver' : (i == 2 ? 'badge-bronze' : ''));
-            gBody.innerHTML += `<tr>
-              <td><span class="badge-rank ${cls}">${i+1}</span></td>
-              <td><strong>${g.kafilah}</strong></td>
-              <td style="text-align:center; font-weight:bold; color:#1b4332;">${g.poin} Poin</td>
-            </tr>`;
+          if(res.data && res.data.generalChampion) {
+            res.data.generalChampion.forEach((g, i) => {
+              let cls = i == 0 ? 'badge-gold' : (i == 1 ? 'badge-silver' : (i == 2 ? 'badge-bronze' : ''));
+              gBody.innerHTML += `<tr>
+                <td style="text-align: center;"><span class="badge-rank ${cls}">${i+1}</span></td>
+                <td><strong>${g.kafilah || g.desa}</strong></td>
+                <td style="text-align:center; font-weight:bold; color:#1b4332;">${g.points || g.poin} Poin</td>
+              </tr>`;
+            });
+          }
+        }
+      } catch(err) { alert("Gagal memuat rekap juara: " + err.message); }
+    }
+
+    // =========================================================================
+    // ⚖️ DEWAN HAKIM PANEL LOGIC
+    // =========================================================================
+    function setupJudgeInterface(branchName) {
+      const cabang = globalConfig.cabangList.find(c => c.nama === branchName);
+      if(!cabang || !cabang.kriteria) return;
+      
+      const criteria = cabang.kriteria.split(',').map(c => c.trim());
+      const container = document.getElementById('dynamicCriteriaContainer');
+      if(!container) return;
+      
+      container.innerHTML = '<h4 style="font-size: 0.8rem; font-weight: 800; margin-bottom: 8px;">Kriteria Skor Penilaian:</h4>';
+      criteria.forEach(c => {
+        container.innerHTML += `
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <label style="width: 35%; font-size: 0.75rem; font-weight: 700;">${c}</label>
+            <input type="number" step="0.01" data-criteria="${c}" required class="criteria-input form-control" style="width: 65%; text-align: center; font-weight: bold;">
+          </div>`;
+      });
+      loadJudgeLiveScores(branchName);
+    }
+
+    async function loadJudgeLiveScores(branchName) {
+      const kat = document.getElementById('scoreKategori').value;
+      const thead = document.getElementById('judgeTableValuesHeader');
+      const tbody = document.getElementById('judgeTableValuesBody');
+      if(!thead || !tbody) return;
+      
+      thead.innerHTML = ''; tbody.innerHTML = '';
+      try {
+        const res = await callBackendGet('getBranchScores', { branchName, kategori: kat });
+        if(res && res.success && res.data) {
+          const scoreData = res.data;
+          if(!scoreData.headers || scoreData.headers.length === 0) return;
+          let hHtml = '<tr>'; scoreData.headers.forEach(h => { hHtml += `<th>${h}</th>`; }); hHtml += '</tr>';
+          thead.innerHTML = hHtml;
+          scoreData.rows.forEach(r => {
+            let rHtml = '<tr>'; scoreData.headers.forEach(h => { rHtml += `<td>${r[h]!==undefined?r[h]:''}</td>`; }); rHtml += '</tr>';
+            tbody.innerHTML += rHtml;
           });
         }
-      } catch(err) { alert("Gagal memuat juara umum: " + err.message); }
+      } catch (e) { console.error("Gagal memuat reviu nilai juri", e); }
+    }
+
+    async function handleScoreSubmit(e) {
+      e.preventDefault();
+      const kat = document.getElementById('scoreKategori').value;
+      const criteriaScores = {};
+      document.querySelectorAll('.criteria-input').forEach(i => { criteriaScores[i.getAttribute('data-criteria')] = i.value; });
+      
+      try {
+        const payload = {
+          branchName: globalConfig.activeBranch,
+          kategori: kat,
+          noPeserta: document.getElementById('scoreNo').value,
+          namaPeserta: document.getElementById('scoreNama').value,
+          criteriaScores: criteriaScores,
+          catatan: document.getElementById('scoreCatatan').value
+        };
+
+        const res = await callBackendPost('submitScore', payload);
+        alert(res.message);
+        if(res.success) {
+          document.getElementById('scoreForm').reset();
+          setupJudgeInterface(globalConfig.activeBranch);
+        }
+      } catch (err) { alert("Gagal mengirim skor: " + err.message); }
+    }
+
+    // =========================================================================
+    // 📄 EXCEL ENGINE & FORMAT F5 PRINT CONTROLLER (AKSES ADMIN KHUSUS)
+    // =========================================================================
+    function downloadLeaderboardXlsx() {
+      const branch = document.getElementById('adminLeaderboardSelect').value;
+      const kat = document.getElementById('adminLeaderboardKategori').value;
+      if (!branch) { alert('Silakan pilih cabang lomba terlebih dahulu!'); return; }
+      
+      const rowEls = Array.from(document.querySelectorAll('#adminLeaderboardBody tr'));
+      if (rowEls.length === 0 || rowEls[0].innerText.includes('pilih cabang') || rowEls[0].innerText.includes('Belum ada') || rowEls[0].innerText.includes('Ugunakan filter')) {
+        alert('Tidak ada data nilai yang dapat diekspor!'); return;
+      }
+      
+      const table = document.getElementById("adminLeaderboardHeader").parentElement;
+      const wb = XLSX.utils.table_to_book(table, {sheet: "Peringkat Nilai"});
+      XLSX.writeFile(wb, `Peringkat_MTQ_${branch.replace(/\s+/g, '_')}_${kat}.xlsx`);
+    }
+
+    function printLeaderboard() {
+      const branch = document.getElementById('adminLeaderboardSelect').value;
+      const kat = document.getElementById('adminLeaderboardKategori').value;
+      if (!branch) { alert('Silakan pilih cabang lomba terlebih dahulu!'); return; }
+      
+      const headerCells = Array.from(document.querySelectorAll('#adminLeaderboardHeader th')).map(el => el.innerText);
+      const rowEls = Array.from(document.querySelectorAll('#adminLeaderboardBody tr'));
+      
+      if (rowEls.length === 0 || rowEls[0].innerText.includes('pilih cabang') || rowEls[0].innerText.includes('Belum ada') || rowEls[0].innerText.includes('Ugunakan filter')) {
+        alert('Tidak ada data nilai yang valid untuk dicetak!'); return;
+      }
+      
+      let rowsHtml = '';
+      rowEls.forEach(row => {
+        let cellsHtml = '';
+        Array.from(row.querySelectorAll('td')).forEach(td => {
+          cellsHtml += `<td style="border: 1px solid #000; padding: 6px; text-align: center;">${td.innerText}</td>`;
+        });
+        rowsHtml += `<tr>${cellsHtml}</tr>`;
+      });
+      
+      let headersHtml = '';
+      headerCells.forEach(header => {
+        headersHtml += `<th style="border: 1px solid #000; padding: 6px; background-color: #f1f5f9; font-weight: bold; text-align: center;">${header}</th>`;
+      });
+      
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Cetak Nilai Format F5 - LPTQ Pasar Kemis</title>
+          <style>
+            @page { size: A4 portrait; margin: 15mm; }
+            body { font-family: 'Times New Roman', Times, serif; font-size: 10pt; color: #000; margin: 0; padding: 0; line-height: 1.4; }
+            .kop-surat { text-align: center; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 15px; }
+            .kop-title { font-size: 12pt; font-weight: bold; margin: 0; letter-spacing: 0.5px; }
+            .kop-sub { font-size: 13pt; font-weight: bold; margin: 0; }
+            .kop-address { font-size: 8.5pt; font-style: italic; margin: 4px 0 0 0; }
+            .doc-title { text-align: center; font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; text-decoration: underline; }
+            .meta-table { width: 100%; font-size: 10pt; margin-bottom: 12px; }
+            table.data-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+            .signature-block { margin-top: 35px; width: 100%; font-size: 10pt; }
+            .signature-block td { text-align: center; vertical-align: top; }
+          </style>
+        </head>
+        <body>
+          <div class="kop-surat">
+            <p class="kop-title">PANITIA MUSABAQAH TILAWTIL QUR'AN (MTQ)</p>
+            <p class="kop-sub">LEMBAGA PENGEMBANGAN TILAWATIL QUR'AN (LPTQ)</p>
+            <p class="kop-sub" style="font-size: 11pt;">KECAMATAN PASAR KEMIS KABUPATEN TANGERANG</p>
+            <p class="kop-address">Sekretariat: Jl. Raya Pasar Kemis, Kec. Pasar Kemis, Tangerang, Banten 15560</p>
+          </div>
+          <div class="doc-title">DAFTAR NILAI DAN PERINGKAT PESERTA (FORMAT F5)</div>
+          <table class="meta-table">
+            <tr><td style="width: 22%; font-weight: bold;">Cabang Lomba</td><td style="width: 2%;">:</td><td>${branch}</td></tr>
+            <tr><td style="font-weight: bold;">Kategori</td><td>:</td><td>${kat}</td></tr>
+          </table>
+          <table class="data-table">
+            <thead><tr>${headersHtml}</tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+          <table class="signature-block">
+            <tr>
+              <td style="width: 55%;"></td>
+              <td>
+                Pasar Kemis, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}<br>
+                <strong>Dewan Hakim Ketua,</strong><br><br><br><br><br>
+                <strong>(....................................................)</strong>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => { printWindow.print(); }, 500);
     }
   </script>
 </body>
