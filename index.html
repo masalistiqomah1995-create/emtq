@@ -1,0 +1,231 @@
+<script>
+    // MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI SINI
+    const API_URL = "https://script.google.com/macros/s/AKfycbxGUGgHGIHRDm90XnAggr-tZjDSl4nLzPVYyBddvUXOOYK3Fdy3Q-tB0VtVd9hozAkO/exec";
+
+    let globalConfig = { cabangList: [] };
+    let currentUser = { loggedIn: false, role: 'Public', name: '', branch: 'Semua' };
+
+    // Handler Helper untuk request berbasis Fetch API dengan penanganan CORS redirect
+    async function callBackendGet(action, params = {}) {
+      const urlParams = new URLSearchParams({ action, ...params }).toString();
+      const response = await fetch(`${API_URL}?${urlParams}`);
+      return await response.json();
+    }
+
+    async function callBackendPost(action, bodyData = {}) {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action, ...bodyData }),
+        headers: { "Content-Type": "text/plain;charset=utf-8" }
+      });
+      return await response.json();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      switchTab('home');
+      loadInitialDashboardData();
+    });
+
+    function switchTab(tabId) {
+      ['home', 'pendaftaran', 'login', 'admin-panel', 'judge-panel'].forEach(id => {
+        const section = document.getElementById('content-' + id);
+        if(section) section.classList.add('hidden');
+        const tabBtn = document.getElementById('tab-' + id);
+        if(tabBtn) tabBtn.classList.remove('tab-active');
+      });
+      
+      const targetSection = document.getElementById('content-' + tabId);
+      if(targetSection) targetSection.classList.remove('hidden');
+      const targetTab = document.getElementById('tab-' + tabId);
+      if(targetTab) targetTab.classList.add('tab-active');
+    }
+
+    async function loadInitialDashboardData() {
+      try {
+        const res = await callBackendGet('getDashboardData');
+        if (res.success) {
+          globalConfig.cabangList = res.data.cabangList;
+          renderCabangLists();
+        }
+      } catch (err) {
+        alert("Gagal memuat data dari server serverless: " + err.message);
+      }
+    }
+
+    function renderCabangLists() {
+      const homeList = document.getElementById('homeCabangList');
+      const regSelect = document.getElementById('regCabangLomba');
+      const leadSelect = document.getElementById('leaderboardSelect');
+      const adminLeadSelect = document.getElementById('adminLeaderboardSelect');
+      
+      if(homeList) homeList.innerHTML = '';
+      if(regSelect) regSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>';
+      if(leadSelect) leadSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>';
+      if(adminLeadSelect) adminLeadSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>';
+
+      globalConfig.cabangList.forEach(c => {
+        if(homeList) {
+          homeList.innerHTML += `<li style="padding:10px; background:#f8fafc; border-radius:8px; border-left:4px solid #d4af37;">
+            <strong>${c.nama}</strong><br><small style="color:#64748b;">Kriteria: ${c.kriteria}</small>
+          </li>`;
+        }
+        const opt = `<option value="${c.nama}">${c.nama}</option>`;
+        if(regSelect) regSelect.innerHTML += opt;
+        if(leadSelect) leadSelect.innerHTML += opt;
+        if(adminLeadSelect) adminLeadSelect.innerHTML += opt;
+      });
+    }
+
+    async function triggerLeaderboardLoad() {
+      const branch = document.getElementById('leaderboardSelect').value;
+      const kat = document.getElementById('leaderboardKategori').value;
+      if (!branch) return;
+      
+      const body = document.getElementById('leaderboardBody');
+      const head = document.getElementById('leaderboardHeader');
+      body.innerHTML = `<tr><td colspan="10" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat klasemen...</td></tr>`;
+      
+      try {
+        const res = await callBackendGet('getBranchScores', { branchName: branch, kategori: kat });
+        if(res.success) {
+          renderTableData(res.data, head, body);
+        }
+      } catch (err) {
+        body.innerHTML = `<tr><td colspan="10" style="color:red; text-align:center;">Gagal memuat: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderTableData(scoreData, headEl, bodyEl) {
+      headEl.innerHTML = '';
+      bodyEl.innerHTML = '';
+      if(!scoreData.headers || scoreData.headers.length === 0) {
+        bodyEl.innerHTML = `<tr><td style="text-align:center;">Belum ada data nilai terdokumentasi.</td></tr>`;
+        return;
+      }
+      
+      let hr = '<tr>';
+      scoreData.headers.forEach(h => hr += `<th>${h}</th>`);
+      hr += '</tr>';
+      headEl.innerHTML = hr;
+
+      scoreData.rows.forEach(r => {
+        let br = '<tr>';
+        scoreData.headers.forEach(h => {
+          let val = r[h] !== undefined ? r[h] : '';
+          if (h === 'Peringkat') {
+            let cls = val == 1 ? 'badge-gold' : (val == 2 ? 'badge-silver' : (val == 3 ? 'badge-bronze' : ''));
+            br += `<td><span class="badge-rank ${cls}">${val}</span></td>`;
+          } else {
+            br += `<td>${val}</td>`;
+          }
+        });
+        br += '</tr>';
+        bodyEl.innerHTML += br;
+      });
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      
+      try {
+        const res = await callBackendPost('verifyLogin', { username: user, password: pass });
+        if(res.success) {
+          currentUser = { loggedIn: true, role: res.role, name: res.name, branch: res.branch };
+          document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-user-shield"></i> Terautentikasi: ${res.name} (${res.role})`;
+          document.getElementById('loginForm').reset();
+          
+          if(res.role === 'Admin') {
+            document.getElementById('tab-admin').classList.remove('hidden');
+            switchTab('admin-panel');
+            loadAdminCabangTable();
+          } else {
+            document.getElementById('tab-judge').classList.remove('hidden');
+            switchTab('judge-panel');
+            initJudgePanel();
+          }
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert("Koneksi gagal: " + err.message);
+      }
+    }
+
+    // Fungsi Pembantu Konversi File ke Base64 (Untuk Pendaftaran)
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        if(!file) resolve({file: null, name: null, type: null});
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve({ file: base64String, name: file.name, type: file.type });
+        };
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    async function handleRegistrationSubmit(e) {
+      e.preventDefault();
+      const statusCont = document.getElementById('regStatusContainer');
+      const btn = document.getElementById('regBtn');
+      
+      statusCont.classList.remove('hidden');
+      btn.disabled = true;
+
+      try {
+        const akte = await fileToBase64(document.getElementById('fileAkte').files[0]);
+        const kk = await fileToBase64(document.getElementById('fileKk').files[0]);
+        const foto = await fileToBase64(document.getElementById('fileFoto').files[0]);
+
+        const formData = {
+          cabangLomba: document.getElementById('regCabangLomba').value,
+          kategori: document.getElementById('regKategori').value,
+          golonganLomba: document.getElementById('regGolongan').value,
+          namaPeserta: document.getElementById('regNamaPeserta').value,
+          nik: document.getElementById('regNik').value,
+          kafilah: document.getElementById('regKafilah').value,
+          tempatLahir: document.getElementById('regTempatLahir').value,
+          tanggalLahir: document.getElementById('regTanggalLahir').value,
+          kampung: document.getElementById('regKampung').value,
+          rtRw: document.getElementById('regRtRw').value,
+          desa: document.getElementById('regDesa').value,
+          kecamatan: document.getElementById('regKecamatan').value,
+          akteFile: akte.file, akteName: akte.name, akteType: akte.type,
+          kkFile: kk.file, kkName: kk.name, kkType: kk.type,
+          fotoFile: foto.file, fotoName: foto.name, fotoType: foto.type
+        };
+
+        const res = await callBackendPost('registerParticipant', { formData });
+        alert(res.message);
+        if(res.success) {
+          document.getElementById('pendaftaranForm').reset();
+          switchTab('home');
+        }
+      } catch (err) {
+        alert("Gagal melakukan registrasi: " + err.message);
+      } finally {
+        statusCont.classList.add('hidden');
+        btn.disabled = false;
+      }
+    }
+
+    function syncKafilahWithDesa(selectEl) {
+      const desa = selectEl.value;
+      if (desa) {
+        document.getElementById('regKafilah').value = "Desa " + desa;
+      }
+    }
+
+    function logout() {
+      currentUser = { loggedIn: false, role: 'Public', name: '', branch: 'Semua' };
+      document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-circle-dot"></i> Public Mode`;
+      document.getElementById('tab-admin').classList.add('hidden');
+      document.getElementById('tab-judge').classList.add('hidden');
+      switchTab('home');
+    }
+
+    // Sambungkan fungsi manajemen admin (handleSaveCabang, deleteCabang, dll) menggunakan objek `callBackendPost`.
+  </script>
