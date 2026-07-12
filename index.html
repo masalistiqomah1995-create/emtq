@@ -1,11 +1,11 @@
 <script>
-    // MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI SINI
-    const API_URL = "https://script.google.com/macros/s/AKfycbxGUGgHGIHRDm90XnAggr-tZjDSl4nLzPVYyBddvUXOOYK3Fdy3Q-tB0VtVd9hozAkO/exec";
+    // 🔴 MASUKKAN URL DEPLOYMENT BARU GOOGLE APPS SCRIPT ANDA DI SINI
+    const API_URL = "https://script.google.com/macros/s/AKfycbxjkxcwurQw34f6cBfMO2DTdF6H9mwGsSlQ_pT8dQZ3sB4VmcGm0dLQcMp2SufalCDv/exec";
 
     let globalConfig = { cabangList: [] };
     let currentUser = { loggedIn: false, role: 'Public', name: '', branch: 'Semua' };
 
-    // Handler Helper untuk request berbasis Fetch API dengan penanganan CORS redirect
+    // Mesin Helper Fetch API Pengganti google.script.run
     async function callBackendGet(action, params = {}) {
       const urlParams = new URLSearchParams({ action, ...params }).toString();
       const response = await fetch(`${API_URL}?${urlParams}`);
@@ -38,6 +38,10 @@
       if(targetSection) targetSection.classList.remove('hidden');
       const targetTab = document.getElementById('tab-' + tabId);
       if(targetTab) targetTab.classList.add('tab-active');
+      
+      if(tabId === 'admin-panel' && currentUser.role === 'Admin') {
+        loadAdminCabangTable();
+      }
     }
 
     async function loadInitialDashboardData() {
@@ -48,7 +52,7 @@
           renderCabangLists();
         }
       } catch (err) {
-        alert("Gagal memuat data dari server serverless: " + err.message);
+        console.error("Gagal sinkronisasi data API serverless LPTQ: ", err);
       }
     }
 
@@ -83,7 +87,7 @@
       
       const body = document.getElementById('leaderboardBody');
       const head = document.getElementById('leaderboardHeader');
-      body.innerHTML = `<tr><td colspan="10" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat klasemen...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="10" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Sinkronisasi Klasemen...</td></tr>`;
       
       try {
         const res = await callBackendGet('getBranchScores', { branchName: branch, kategori: kat });
@@ -99,7 +103,7 @@
       headEl.innerHTML = '';
       bodyEl.innerHTML = '';
       if(!scoreData.headers || scoreData.headers.length === 0) {
-        bodyEl.innerHTML = `<tr><td style="text-align:center;">Belum ada data nilai terdokumentasi.</td></tr>`;
+        bodyEl.innerHTML = `<tr><td style="text-align:center; padding: 20px;">Belum ada record data nilai untuk cabang ini.</td></tr>`;
         return;
       }
       
@@ -133,13 +137,12 @@
         const res = await callBackendPost('verifyLogin', { username: user, password: pass });
         if(res.success) {
           currentUser = { loggedIn: true, role: res.role, name: res.name, branch: res.branch };
-          document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-user-shield"></i> Terautentikasi: ${res.name} (${res.role})`;
+          document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-user-shield"></i> Mode: ${res.name} (${res.role})`;
           document.getElementById('loginForm').reset();
           
           if(res.role === 'Admin') {
             document.getElementById('tab-admin').classList.remove('hidden');
             switchTab('admin-panel');
-            loadAdminCabangTable();
           } else {
             document.getElementById('tab-judge').classList.remove('hidden');
             switchTab('judge-panel');
@@ -149,21 +152,19 @@
           alert(res.message);
         }
       } catch (err) {
-        alert("Koneksi gagal: " + err.message);
+        alert("Autentikasi gagal: " + err.message);
       }
     }
 
-    // Fungsi Pembantu Konversi File ke Base64 (Untuk Pendaftaran)
     function fileToBase64(file) {
       return new Promise((resolve, reject) => {
         if(!file) resolve({file: null, name: null, type: null});
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-          const base64String = reader.result.split(',')[1];
-          resolve({ file: base64String, name: file.name, type: file.type });
-        };
-        reader.onerror = error => reject(error);
+        else {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve({ file: reader.result.split(',')[1], name: file.name, type: file.type });
+          reader.onerror = error => reject(error);
+        }
       });
     }
 
@@ -205,18 +206,104 @@
           switchTab('home');
         }
       } catch (err) {
-        alert("Gagal melakukan registrasi: " + err.message);
+        alert("Terjadi kegagalan pendaftaran sistem: " + err.message);
       } finally {
         statusCont.classList.add('hidden');
         btn.disabled = false;
       }
     }
 
+    async function loadAdminCabangTable() {
+      const tableBody = document.getElementById('adminCabangTable');
+      if(!tableBody) return;
+      tableBody.innerHTML = '';
+      
+      globalConfig.cabangList.forEach(c => {
+        tableBody.innerHTML += `<tr>
+          <td>${c.id}</td>
+          <td><strong>${c.nama}</strong></td>
+          <td>${c.kriteria}</td>
+          <td style="text-align:center;">
+            <button onclick="editCabang('${c.id}', '${c.nama}', '${c.kriteria}')" class="btn btn-gold" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteCabangClick('${c.id}', '${c.nama}')" class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`;
+      });
+    }
+
+    async function handleSaveCabang(e) {
+      e.preventDefault();
+      const id = document.getElementById('cabangId').value;
+      const nama = document.getElementById('cabangNama').value;
+      const kriteria = document.getElementById('cabangKriteria').value;
+      
+      try {
+        const res = await callBackendPost('saveCabang', { id, nama, kriteria });
+        alert(res.message);
+        clearCabangForm();
+        await loadInitialDashboardData();
+        loadAdminCabangTable();
+      } catch(err) { alert(err.message); }
+    }
+
+    async function deleteCabangClick(id, nama) {
+      if(!confirm(`Apakah Anda yakin ingin menghapus cabang ${nama}? Semua lembar skor terikat akan ikut dihapus.`)) return;
+      try {
+        const res = await callBackendPost('deleteCabang', { id, nama });
+        alert(res.message);
+        await loadInitialDashboardData();
+        loadAdminCabangTable();
+      } catch(err) { alert(err.message); }
+    }
+
+    function editCabang(id, nama, kriteria) {
+      document.getElementById('cabangId').value = id;
+      document.getElementById('cabangNama').value = nama;
+      document.getElementById('cabangKriteria').value = kriteria;
+      document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Cabang Lomba';
+    }
+
+    function clearCabangForm() {
+      document.getElementById('cabangId').value = '';
+      document.getElementById('cabangForm').reset();
+      document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-plus-circle"></i> Tambah Cabang Lomba';
+    }
+
+    async function refreshJuaraPemenang() {
+      const wBody = document.getElementById('compiledWinnersBody');
+      const gBody = document.getElementById('generalChampionBody');
+      wBody.innerHTML = `<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Memproses kalkulasi skor...</td></tr>`;
+      
+      try {
+        const res = await callBackendGet('syncAndGetWinners');
+        if(res.success) {
+          wBody.innerHTML = '';
+          gBody.innerHTML = '';
+          
+          res.data.winners.forEach(w => {
+            wBody.innerHTML += `<tr>
+              <td><strong>${w.cabang}</strong></td>
+              <td>${w.kategori}</td>
+              <td>${w.juara1}</td>
+              <td>${w.juara2}</td>
+              <td>${w.juara3}</td>
+            </tr>`;
+          });
+
+          res.data.generalChampion.forEach((g, i) => {
+            let cls = i == 0 ? 'badge-gold' : (i == 1 ? 'badge-silver' : (i == 2 ? 'badge-bronze' : ''));
+            gBody.innerHTML += `<tr>
+              <td><span class="badge-rank ${cls}">${i+1}</span></td>
+              <td><strong>${g.kafilah}</strong></td>
+              <td style="text-align:center; font-weight:bold; color:#1b4332;">${g.poin} Poin</td>
+            </tr>`;
+          });
+        }
+      } catch(err) { alert("Gagal kalkulasi juara umum: " + err.message); }
+    }
+
     function syncKafilahWithDesa(selectEl) {
-      const desa = selectEl.value;
-      if (desa) {
-        document.getElementById('regKafilah').value = "Desa " + desa;
-      }
+      if (selectEl.value) document.getElementById('regKafilah').value = "Desa " + selectEl.value;
     }
 
     function logout() {
@@ -226,6 +313,4 @@
       document.getElementById('tab-judge').classList.add('hidden');
       switchTab('home');
     }
-
-    // Sambungkan fungsi manajemen admin (handleSaveCabang, deleteCabang, dll) menggunakan objek `callBackendPost`.
   </script>
