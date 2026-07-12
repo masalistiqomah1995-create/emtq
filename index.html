@@ -567,42 +567,57 @@
 
     // HANDLER LOGIN PORTAL MULTI-USER (ADMIN, HAKIM, PENDAFTAR)
     async function handleLogin(e) {
-      e.preventDefault();
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
+  e.preventDefault();
+  const user = document.getElementById('username').value;
+  const pass = document.getElementById('password').value;
 
-      try {
-        const response = await fetch(`${API_URL}?action=verifyLoginUniversal&user=${user}&pass=${pass}`);
-        const res = await response.json();
-        if(res.success) {
-          currentUser.role = res.role;
-          document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-user-shield"></i> Terautentikasi: ${res.role}`;
-          
-          if(res.role === 'Pendaftar') {
-            currentUser.name = res.data.namaPeserta;
-            currentUser.noPeserta = res.data.nomorPeserta;
-            currentUser.rawData = res.data;
+  try {
+    // Membuka blokir CORS cache dengan menambahkan timestamp unik (_ts)
+    const response = await fetch(`${API_URL}?action=verifyLoginUniversal&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}&_ts=${Date.now()}`, {
+      method: 'GET',
+      mode: 'cors',
+      headers: { 'Accept': 'application/json' }
+    });
+    
+    if(!response.ok) throw new Error("HTTP Status " + response.status);
+    
+    const res = await response.json();
+    if(res.success) {
+      currentUser.role = res.role;
+      document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-user-shield"></i> Terautentikasi: ${res.role}`;
+      
+      if(res.role === 'Pendaftar') {
+        currentUser.name = res.data.namaPeserta;
+        currentUser.noPeserta = res.data.nomorPeserta;
+        currentUser.rawData = res.data;
 
-            document.getElementById('pendaftarNamaTitle').innerText = res.data.namaPeserta;
-            document.getElementById('pendaftarNoTitle').innerText = res.data.nomorPeserta;
-            
-            // Masukkan data ke form edit mandiri
-            document.getElementById('editRowIndex').value = res.data.rowIndex;
-            document.getElementById('editRegCabang').value = res.data.cabangLomba;
-            document.getElementById('editRegGolongan').value = res.data.golongan;
-            document.getElementById('editRegNama').value = res.data.namaPeserta;
-            document.getElementById('editRegTempat').value = res.data.tempatLahir;
-            document.getElementById('editRegTgl').value = res.data.tanggalLahir.split('T')[0];
+        document.getElementById('pendaftarNamaTitle').innerText = res.data.namaPeserta;
+        document.getElementById('pendaftarNoTitle').innerText = res.data.nomorPeserta;
+        
+        document.getElementById('editRowIndex').value = res.data.rowIndex;
+        document.getElementById('editRegCabang').value = res.data.cabangLomba;
+        document.getElementById('editRegGolongan').value = res.data.golongan;
+        document.getElementById('editRegNama').value = res.data.namaPeserta;
+        document.getElementById('editRegTempat').value = res.data.tempatLahir;
+        document.getElementById('editRegTgl').value = res.data.tanggalLahir.split('T')[0];
 
-            document.getElementById('tab-pendaftar').classList.remove('hidden');
-            switchTab('pendaftar-panel');
-          } else if(res.role === 'Admin') {
-            document.getElementById('tab-admin').classList.remove('hidden');
-            switchTab('admin-panel');
-          }
-        } else { alert("Data login salah atau tidak ditemukan!"); }
-      } catch(err) { alert("Koneksi gagal."); }
+        document.getElementById('tab-pendaftar').classList.remove('hidden');
+        switchTab('pendaftar-panel');
+      } else if(res.role === 'Admin') {
+        document.getElementById('tab-admin').classList.remove('hidden');
+        switchTab('admin-panel');
+      } else if(res.role === 'Hakim') {
+        document.getElementById('tab-judge').classList.remove('hidden');
+        switchTab('judge-panel');
+      }
+    } else { 
+      alert("Gagal: " + (res.message || "Data login salah!")); 
     }
+  } catch(err) { 
+    console.error(err);
+    alert("Koneksi gagal! Silakan periksa kembali apakah URL Google Apps Script Anda sudah benar dan di-deploy sebagai 'Anyone'."); 
+  }
+}
 
     // UPDATE DATA MANDIRI OLEH PENDAFTAR
     async function handleEditPendaftarSubmit(e) {
