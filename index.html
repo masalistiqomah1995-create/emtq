@@ -4,91 +4,327 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistem MTQ - LPTQ Kecamatan Pasar Kemis</title>
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
+    /* RESET & DASAR */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background-color: #f0f4f1; color: #2e3e35; line-height: 1.6; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background-color: #f0f4f1; 
+      color: #2e3e35; 
+      line-height: 1.6;
+    }
     .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
     .hidden { display: none !important; }
-    header { background: linear-gradient(135deg, #0f291e 0%, #1b4332 100%); color: white; padding: 24px; border-bottom: 5px solid #d4af37; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
-    .header-content { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
-    @media (min-width: 640px) { .header-content { flex-direction: row; text-align: left; } }
-    .emblem-fallback { display: flex; align-items: center; gap: 8px; background: #0d3822; padding: 8px 16px; border-radius: 8px; border: 1px solid #d4af37; }
-    .header-text h1 { font-size: 1.4rem; color: #d4af37; font-weight: 800; }
-    #userStatus { font-size: 0.8rem; color: #fef08a; background: rgba(15, 41, 30, 0.6); padding: 6px 16px; border-radius: 9999px; border: 1px solid rgba(212, 175, 55, 0.3); display: inline-flex; margin-top: 10px; }
-    nav { background: white; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 50; }
-    .nav-container { display: flex; overflow-x: auto; white-space: nowrap; }
-    .nav-tab { background: transparent; border: none; padding: 16px 24px; color: #64748b; font-weight: 700; cursor: pointer; border-bottom: 4px solid transparent; display: flex; align-items: center; gap: 8px; }
-    .tab-active { border-bottom-color: #d4af37 !important; color: #1b4332 !important; background: #f0fdf4; }
-    .card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 24px; margin-bottom: 24px; }
-    .card-title { font-size: 1.1rem; font-weight: 800; color: #1b4332; border-bottom: 2px solid #f0fdf4; padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-    .grid-1-3 { display: grid; grid-template-columns: 1fr; gap: 24px; }
-    @media (min-width: 768px) { .grid-1-3 { grid-template-columns: 1fr 2fr; } }
+
+    /* BRANDING HEADER Khas LPTQ */
+    header {
+      background: linear-gradient(135deg, #0f291e 0%, #1b4332 100%);
+      color: #ffffff;
+      padding: 24px;
+      border-bottom: 5px solid #d4af37;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+    }
+    @media (min-width: 640px) {
+      .header-content { flex-direction: row; text-align: left; }
+    }
+    .emblem-wrapper {
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 12px;
+      border: 2px solid #d4af37;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .emblem-fallback {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0d3822;
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #d4af37;
+    }
+    .emblem-fallback i { color: #d4af37; font-size: 1.25rem; }
+    .header-text h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #d4af37;
+      letter-spacing: 0.5px;
+    }
+    .header-text p { font-size: 0.85rem; color: #cbd5e1; font-weight: 500; }
+
+    /* STATUS AKSES */
+    #userStatus {
+      font-size: 0.8rem;
+      color: #fef08a;
+      background: rgba(15, 41, 30, 0.6);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      display: inline-flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    /* NAVIGATION BAR TABS */
+    nav {
+      background: #ffffff;
+      border-bottom: 2px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .nav-container {
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .nav-tab {
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 16px 24px;
+      color: #64748b;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 4px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-tab:hover { color: #1b4332; background: #f8fafc; }
+    .tab-active {
+      border-bottom-color: #d4af37 !important;
+      color: #1b4332 !important;
+      background: #f0fdf4;
+    }
+
+    /* CARD COMPONENT */
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      padding: 24px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #1b4332;
+      border-bottom: 2px solid #f0fdf4;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* GRIDS */
+    .grid-1-3 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    @media (min-width: 768px) {
+      .grid-1-3 { grid-template-columns: 1fr 2fr; }
+    }
+
+    /* FORM & INPUTS */
     .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px; }
-    .form-control { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: #f8fafc; }
-    .table-responsive { width: 100%; overflow-x: auto; border-radius: 12px; border: 1px solid #cbd5e1; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th { background: #f1f5f9; color: #1b4332; font-weight: 700; padding: 12px 16px; text-align: left; }
-    td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; background: white; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; font-size: 0.85rem; }
-    .btn-emerald { background: #1b4332; color: white; }
-    .btn-blue { background: #2563eb; color: white; }
-    .btn-red { background: #dc2626; color: white; }
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-box { background: white; padding: 30px; border-radius: 16px; max-width: 450px; width: 90%; border-top: 8px solid #d4af37; text-align: center; }
-    .credential-box { background: #f1f5f9; padding: 12px; border-radius: 8px; margin: 15px 0; font-family: monospace; font-size: 1.1rem; text-align: left; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: #f8fafc;
+      color: #334155;
+    }
+    .form-control:focus {
+      background: #ffffff;
+      border-color: #1b4332;
+      box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.15);
+    }
+
+    /* MODERN TABLES */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+      color: #1b4332;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-bottom: 2px solid #cbd5e1;
+    }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+    tr:hover td { background: #f8fafc; }
+
+    /* UTILITY BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-emerald { background: #1b4332; color: #ffffff; }
+    .btn-emerald:hover { background: #0f291e; }
+    .btn-gold { background: #d4af37; color: #0f291e; }
+    .btn-gold:hover { background: #c5a030; }
+    .btn-blue { background: #2563eb; color: #ffffff; }
+    .btn-blue:hover { background: #1d4ed8; }
+    .btn-red { background: #dc2626; color: #ffffff; }
+    .btn-red:hover { background: #b91c1c; }
+
+    /* BADGES */
+    .badge-rank {
+      width: 24px;
+      height: 24px;
+      background: #cbd5e1;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #334155;
+    }
+    .badge-gold { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
+    .badge-silver { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+    .badge-bronze { background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+    
+    /* Toast Alert Custom Style */
+    .toast-box {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      padding: 12px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+    }
+    .toast-success { background-color: #10b981; }
+    .toast-danger { background-color: #ef4444; }
   </style>
 </head>
 <body>
 
+  <div id="toast" class="toast-box"></div>
+
   <header>
     <div class="container header-content">
-      <div class="emblem-fallback"><i class="fa-solid fa-star-and-crescent"></i> <strong>LPTQ PASAR KEMIS</strong></div>
+      <div class="emblem-wrapper">
+        <div class="emblem-fallback">
+          <i class="fa-solid fa-star-and-crescent"></i>
+          <strong>LPTQ PASAR KEMIS</strong>
+        </div>
+      </div>
       <div class="header-text">
         <h1>E-SISTEM PENILAIAN & PENDAFTARAN MTQ</h1>
         <p>Lembaga Pengembangan Tilawatil Qur'an (LPTQ) Kecamatan Pasar Kemis Kab. Tangerang</p>
-        <div id="userStatus"><i class="fa-solid fa-circle-dot"></i> Public Mode</div>
+        <div id="userStatus">
+          <i class="fa-solid fa-circle-dot mr-2"></i> Public Mode
+        </div>
       </div>
     </div>
   </header>
 
   <nav>
     <div class="container nav-container">
-      <button onclick="switchTab('home')" id="tab-home" class="nav-tab tab-active"><i class="fa-solid fa-house"></i>Beranda</button>
-      <button onclick="switchTab('pendaftaran')" id="tab-pendaftaran" class="nav-tab"><i class="fa-solid fa-user-plus"></i>Pendaftaran</button>
-      <button onclick="switchTab('login')" id="tab-login" class="nav-tab"><i class="fa-solid fa-right-to-bracket"></i>Login</button>
-      <button onclick="switchTab('pendaftar-panel')" id="tab-pendaftar" class="nav-tab hidden"><i class="fa-solid fa-user"></i>Panel Saya</button>
-      <button onclick="switchTab('admin-panel')" id="tab-admin" class="nav-tab hidden"><i class="fa-solid fa-user-gear"></i>Admin</button>
-      <button onclick="switchTab('judge-panel')" id="tab-judge" class="nav-tab hidden"><i class="fa-solid fa-gavel"></i>Hakim</button>
+      <button onclick="switchTab('home')" id="tab-home" class="nav-tab tab-active">
+        <i class="fa-solid fa-house"></i>Beranda
+      </button>
+      <button onclick="switchTab('pendaftaran')" id="tab-pendaftaran" class="nav-tab">
+        <i class="fa-solid fa-user-plus"></i>Pendaftaran
+      </button>
+      <button onclick="switchTab('login')" id="tab-login" class="nav-tab">
+        <i class="fa-solid fa-right-to-bracket"></i>Login
+      </button>
+      <button onclick="switchTab('admin-panel')" id="tab-admin" class="nav-tab hidden">
+        <i class="fa-solid fa-user-gear"></i>Admin
+      </button>
+      <button onclick="switchTab('judge-panel')" id="tab-judge" class="nav-tab hidden">
+        <i class="fa-solid fa-gavel"></i>Hakim
+      </button>
     </div>
   </nav>
 
   <main class="container">
+
     <section id="content-home">
       <div class="grid-1-3">
         <div class="card">
-          <div class="card-title"><i class="fa-solid fa-trophy"></i> Filter Cabang</div>
-          <select id="leaderboardSelect" class="form-control" style="margin-bottom:10px;"></select>
-          <p style="font-size: 0.75rem; color:#64748b;">Pilih cabang lomba di atas untuk melihat pemetaan peringkat.</p>
+          <div class="card-title"><i class="fa-solid fa-list-check"></i> Cabang Lomba</div>
+          <ul id="homeCabangList" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+            <li style="color: #94a3b8;">Memuat data cabang...</li>
+          </ul>
         </div>
+        
         <div class="card">
-          <div class="card-title"><i class="fa-solid fa-users"></i> Daftar Peserta Terregistrasi</div>
+          <div class="card-title">
+            <i class="fa-solid fa-trophy"></i> Papan Peringkat Sementara Cabang
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+            <select id="leaderboardSelect" onchange="triggerLeaderboardLoad()" class="form-control" style="max-width: 200px;"></select>
+            <select id="leaderboardKategori" onchange="triggerLeaderboardLoad()" class="form-control" style="max-width: 150px;">
+              <option value="PUTRA">Kategori: PUTRA</option>
+              <option value="PUTRI">Kategori: PUTRI</option>
+            </select>
+          </div>
           <div class="table-responsive">
             <table>
-              <thead>
-                <tr>
-                  <th>Nomor Peserta</th>
-                  <th>Nama Peserta</th>
-                  <th>Cabang Lomba</th>
-                  <th>Golongan</th>
-                  <th>Kafilah</th>
-                </tr>
-              </thead>
-              <tbody id="publicParticipantsBody">
-                <tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">Memuat data registrasi publik...</td></tr>
+              <thead id="leaderboardHeader"></thead>
+              <tbody id="leaderboardBody">
+                <tr><td colspan="10" style="text-align: center; padding: 20px; color: #94a3b8;">Silakan pilih cabang lomba dan kategori.</td></tr>
               </tbody>
             </table>
           </div>
@@ -98,11 +334,11 @@
 
     <section id="content-pendaftaran" class="hidden">
       <div class="card" style="max-width: 800px; margin: 0 auto;">
-        <div class="card-title"><i class="fa-solid fa-file-signature"></i> Formulir Pendaftaran</div>
+        <div class="card-title"><i class="fa-solid fa-file-signature text-lptq-gold"></i> Formulir Pendaftaran Peserta MTQ</div>
         <form id="pendaftaranForm" onsubmit="handleRegistrationSubmit(event)">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
             <div class="form-group">
-              <label>Cabang Lomba (Ambil dari Config_Cabang)</label>
+              <label>Cabang Lomba</label>
               <select id="regCabangLomba" required class="form-control"></select>
             </div>
             <div class="form-group">
@@ -114,276 +350,848 @@
             </div>
             <div class="form-group">
               <label>Golongan Lomba</label>
-              <input type="text" id="regGolongan" required class="form-control" placeholder="Contoh: Remaja / Anak-Anak">
+              <input type="text" id="regGolongan" required class="form-control" placeholder="Contoh: Dewasa / Anak">
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 10px;">
-            <div class="form-group"><label>Nama Lengkap</label><input type="text" id="regNamaPeserta" required class="form-control"></div>
-            <div class="form-group"><label>NIK (16 Digit)</label><input type="number" id="regNik" required class="form-control"></div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
             <div class="form-group">
-              <label>Kafilah / Desa</label>
-              <select id="regKafilah" required class="form-control">
+              <label>Nama Lengkap Peserta</label>
+              <input type="text" id="regNamaPeserta" required class="form-control" placeholder="Nama sesuai akte">
+            </div>
+            <div class="form-group">
+              <label>NIK (Nomor Induk Kependudukan)</label>
+              <input type="number" id="regNik" required class="form-control" placeholder="16 Digit NIK">
+            </div>
+            <div class="form-group">
+              <label>Kafilah / Desa Pilihan</label>
+              <select id="regKafilah" required class="form-control" style="font-weight: bold;">
+                <option value="">-- Pilih Kafilah Desa/Kel --</option>
+                <option value="Desa Gelam Jaya">Desa Gelam Jaya</option>
                 <option value="Kelurahan Kuta Baru">Kelurahan Kuta Baru</option>
+                <option value="Kelurahan Kuta Jaya">Kelurahan Kuta Jaya</option>
                 <option value="Kelurahan Kutabumi">Kelurahan Kutabumi</option>
                 <option value="Desa Pangadegan">Desa Pangadegan</option>
-                <option value="Desa Pangadegan">Desa Pangadegan</option>
-                <option value="Desa Pangadegan">Desa Pangadegan</option>
-                <option value="Desa Pangadegan">Desa Pangadegan</option>
-                <option value="Desa Pangadegan">Desa Pangadegan</option>
-                <option value="Desa Pangadegan">Desa Pangadegan</option>
-                              
+                <option value="Desa Pasar Kemis">Desa Pasar Kemis</option>
+                <option value="Desa Sindangsari">Desa Sindangsari</option>
+                <option value="Desa Suka Asih">Desa Suka Asih</option>
+                <option value="Desa Sukamantri">Desa Sukamantri</option>
               </select>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px;">
-            <div class="form-group"><label>Tempat Lahir</label><input type="text" id="regTempatLahir" required class="form-control"></div>
-            <div class="form-group"><label>Tanggal Lahir</label><input type="date" id="regTanggalLahir" required class="form-control"></div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div class="form-group">
+              <label>Tempat Lahir</label>
+              <input type="text" id="regTempatLahir" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Tanggal Lahir</label>
+              <input type="date" id="regTanggalLahir" required class="form-control">
+            </div>
           </div>
-          <div id="regStatusContainer" class="hidden" style="background:#eff6ff; color:#1e40af; padding:12px; text-align:center; margin-top:15px; border-radius:8px;">Memproses registrasi...</div>
-          <button type="submit" class="btn btn-emerald" style="width:100%; margin-top:15px; padding:12px;"><i class="fa-solid fa-paper-plane"></i> Kirim Pendaftaran</button>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div class="form-group">
+              <label>Kampung / Jalan / Perumahan</label>
+              <input type="text" id="regKampung" required class="form-control" placeholder="Contoh: Kp. Pasar Baru">
+            </div>
+            <div class="form-group">
+              <label>RT / RW</label>
+              <input type="text" id="regRtRw" required class="form-control" placeholder="003/001">
+            </div>
+            <div class="form-group">
+              <label>Kelurahan / Desa</label>
+              <select id="regDesa" required class="form-control" onchange="syncKafilahWithDesa(this)">
+                <option value="">-- Pilih Desa --</option>
+                <option value="Gelam Jaya">Gelam Jaya</option>
+                <option value="Kuta Baru">Kuta Baru</option>
+                <option value="Kuta Jaya">Kuta Jaya</option>
+                <option value="Kutabumi">Kutabumi</option>
+                <option value="Pangadegan">Pangadegan</option>
+                <option value="Pasar Kemis">Pasar Kemis</option>
+                <option value="Sindangsari">Sindangsari</option>
+                <option value="Suka Asih">Suka Asih</option>
+                <option value="Sukamantri">Sukamantri</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Kecamatan</label>
+              <input type="text" id="regKecamatan" value="Pasar Kemis" readonly class="form-control" style="background-color: #f1f5f9; font-weight: 700;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div class="form-group">
+              <label>Berkas Akte Kelahiran</label>
+              <input type="file" id="fileAkte" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Berkas Kartu Keluarga</label>
+              <input type="file" id="fileKk" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Foto Resmi Peserta (3x4)</label>
+              <input type="file" id="fileFoto" required class="form-control">
+            </div>
+          </div>
+
+          <div id="regStatusContainer" class="hidden" style="background: #eff6ff; color: #1e40af; padding: 12px; border-radius: 8px; font-weight: 700; margin-bottom: 16px; text-align: center;">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Sedang memproses berkas & mengirimkan data ke database...
+          </div>
+
+          <button type="submit" id="regBtn" class="btn btn-emerald" style="width: 100%; padding: 12px 20px; font-size: 1rem;">
+            <i class="fa-solid fa-paper-plane"></i> Kirim Berkas Registrasi
+          </button>
         </form>
       </div>
     </section>
 
     <section id="content-login" class="hidden">
       <div class="card" style="max-width: 400px; margin: 40px auto;">
-        <div class="card-title" style="justify-content: center;"><i class="fa-solid fa-shield-halved"></i> Login Portal</div>
-        <form onsubmit="handleLogin(event)">
-          <div class="form-group"><label>Username</label><input type="text" id="username" required class="form-control"></div>
-          <div class="form-group"><label>Password</label><input type="password" id="password" required class="form-control"></div>
-          <button type="submit" class="btn btn-emerald" style="width: 100%;"><i class="fa-solid fa-right-to-bracket"></i> Masuk</button>
+        <div class="card-title" style="justify-content: center;"><i class="fa-solid fa-shield-halved"></i> Login Dewan Hakim & Admin</div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="username" required class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" required class="form-control">
+          </div>
+          <button type="submit" class="btn btn-emerald" style="width: 100%;"><i class="fa-solid fa-right-to-bracket"></i> Masuk Sistem</button>
         </form>
       </div>
     </section>
 
-    <section id="content-pendaftar-panel" class="hidden">
-      <div class="card" style="background: #1e3a8a; color: white; display:flex; justify-content:space-between; align-items:center;">
-        <div><h3>Panel Mandiri Peserta</h3><p>Selamat datang, <span id="pendaftarNamaTitle"></span> (<span id="pendaftarNoTitle"></span>)</p></div>
-        <button onclick="logout()" class="btn btn-red">Logout</button>
-      </div>
-      <div class="grid-1-3">
-        <div class="card">
-          <div class="card-title">Edit Biodata & Cabang</div>
-          <form id="editPendaftarForm" onsubmit="handleEditPendaftarSubmit(event)">
-            <input type="hidden" id="editRowIndex">
-            <div class="form-group"><label>Cabang Lomba</label><select id="editRegCabang" required class="form-control"></select></div>
-            <div class="form-group"><label>Golongan</label><input type="text" id="editRegGolongan" class="form-control" required></div>
-            <div class="form-group"><label>Nama Lengkap</label><input type="text" id="editRegNama" class="form-control" required></div>
-            <div class="form-group"><label>Tempat Lahir</label><input type="text" id="editRegTempat" class="form-control" required></div>
-            <div class="form-group"><label>Tanggal Lahir</label><input type="date" id="editRegTgl" class="form-control" required></div>
-            <button type="submit" class="btn btn-emerald" style="width: 100%;">Simpan Perubahan</button>
-          </form>
-        </div>
-        <div class="card" style="text-align: center;">
-          <i class="fa-solid fa-address-card" style="font-size: 4rem; color: #d4af37; margin-bottom: 15px;"></i>
-          <h4>Bukti Registrasi Resmi Kartu F5</h4>
-          <button onclick="printBuktiF5()" class="btn btn-blue" style="margin-top:20px; width:100%; padding:12px;"><i class="fa-solid fa-print"></i> CETAK BUKTI F5</button>
-        </div>
-      </div>
-    </section>
-
     <section id="content-admin-panel" class="hidden">
-      <div class="card" style="background:#1b4332; color:white; display:flex; justify-content:space-between; align-items:center;">
-        <div><h3>Portal Utama Administrator</h3></div>
-        <button onclick="logout()" class="btn btn-red">Logout</button>
+      <div class="card" style="background: #1b4332; color: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800; color: #d4af37;"><i class="fa-solid fa-user-gear"></i> Portal Manajemen Admin</h2>
+          <p style="font-size: 0.8rem; color: #cbd5e1;">Kelola data konfigurasi cabang lomba, kriteria penilaian, dan hasil keputusan juara</p>
+        </div>
+        <button onclick="logout()" class="btn btn-red"><i class="fa-solid fa-power-off"></i> Logout</button>
       </div>
-      <div class="card"><p>Selamat datang di konsol admin. Semua data sinkron secara realtime.</p></div>
+
+      <div class="card" style="border: 1px solid #fef08a; background: #fffdf5; margin-top: 20px;">
+        <div class="card-title" style="color: #854d0e;">
+          <i class="fa-solid fa-crown"></i> Rekap Pemenang & Klasemen Juara Umum Terpadu (Akses Admin)
+          <button onclick="refreshJuaraPemenang()" class="btn btn-gold" style="margin-left: auto; padding: 6px 12px; font-size: 0.75rem;">
+            <i class="fa-solid fa-arrows-rotate"></i> Perbarui Rekap Juara
+          </button>
+        </div>
+        <div class="grid-1-3">
+          <div>
+            <h4 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 10px; color: #1b4332;">Kafilah Juara Umum</h4>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Nama Kafilah (Desa)</th>
+                    <th style="text-align: center;">Total Poin</th>
+                  </tr>
+                </thead>
+                <tbody id="generalChampionBody">
+                  <tr><td colspan="3" style="text-align: center; color: #94a3b8;">Ketuk "Perbarui Rekap Juara" untuk memuat rekap.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h4 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 10px; color: #1b4332;">Rekap Juara Terbaik Per Cabang Lomba</h4>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cabang Lomba</th>
+                    <th>Kat.</th>
+                    <th>Juara 1 (Terbaik 1)</th>
+                    <th>Juara 2 (Terbaik 2)</th>
+                    <th>Juara 3 (Terbaik 3)</th>
+                  </tr>
+                </thead>
+                <tbody id="compiledWinnersBody">
+                  <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Data rekap juara belum disinkronkan.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="border: 1px solid #93c5fd; background: #f0f7ff; margin-top: 20px;">
+        <div class="card-title" style="color: #1e3a8a;">
+          <i class="fa-solid fa-print"></i> Stasiun Cetak F5 & Ekspor Excel (Akses Admin)
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+          <select id="adminLeaderboardSelect" onchange="triggerAdminLeaderboardLoad()" class="form-control" style="max-width: 250px; border-color: #3b82f6;"></select>
+          <select id="adminLeaderboardKategori" onchange="triggerAdminLeaderboardLoad()" class="form-control" style="max-width: 150px; border-color: #3b82f6;">
+            <option value="PUTRA">Kategori: PUTRA</option>
+            <option value="PUTRI">Kategori: PUTRI</option>
+          </select>
+          <button onclick="downloadLeaderboardXlsx()" class="btn btn-emerald"><i class="fa-solid fa-file-excel"></i> Ekspor ke .xlsx</button>
+          <button onclick="printLeaderboard()" class="btn btn-blue"><i class="fa-solid fa-print"></i> Cetak Format F5</button>
+        </div>
+        <div class="table-responsive" style="border-color: #93c5fd;">
+          <table>
+            <thead id="adminLeaderboardHeader" style="background-color: #eff6ff;"></thead>
+            <tbody id="adminLeaderboardBody">
+              <tr><td colspan="10" style="text-align: center; padding: 20px; color: #1e40af;">Gunakan filter di atas untuk meninjau data peringkat.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-1-3" style="margin-top: 20px;">
+        <div class="card">
+          <div class="card-title" id="formTitle"><i class="fa-solid fa-plus-circle"></i> Tambah Cabang Lomba</div>
+          <form id="cabangForm" onsubmit="handleSaveCabang(event)">
+            <input type="hidden" id="cabangId">
+            <div class="form-group">
+              <label>Nama Cabang Lomba</label>
+              <input type="text" id="cabangNama" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Kriteria Penilaian (Pisahkan dengan koma)</label>
+              <textarea id="cabangKriteria" required rows="3" class="form-control" placeholder="Tajwid, Fashahah, Lagu"></textarea>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="submit" class="btn btn-emerald" style="flex: 1;">Simpan Cabang</button>
+              <button type="button" onclick="clearCabangForm()" class="btn" style="background: #e2e8f0;">Reset</button>
+            </div>
+          </form>
+          <button onclick="triggerInitDatabase()" class="btn btn-gold" style="width: 100%; margin-top: 15px;">
+            <i class="fa-solid fa-database"></i> Paksa Inisialisasi Ulang Database
+          </button>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-table"></i> Daftar Konfigurasi Cabang</div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Cabang Lomba</th>
+                  <th>Kriteria</th>
+                  <th style="text-align: center;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="adminCabangTable">
+                <tr><td colspan="4" style="text-align: center; color: #94a3b8;">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="content-judge-panel" class="hidden">
-      <div class="card" style="background:#b45309; color:white; display:flex; justify-content:space-between; align-items:center;">
-        <div><h3>Portal Penilaian Dewan Hakim</h3><p>Hakim Autentikasi Aktif</p></div>
-        <button onclick="logout()" class="btn btn-red">Logout</button>
+      <div class="card" style="background: #1b4332; color: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800; color: #d4af37;"><i class="fa-solid fa-gavel"></i> Portal Penilaian Dewan Hakim</h2>
+          <p style="font-size: 0.8rem; color: #cbd5e1;" id="judgeWelcomeText">Memuat wewenang tugas...</p>
+        </div>
+        <button onclick="logout()" class="btn btn-red"><i class="fa-solid fa-power-off"></i> Logout</button>
       </div>
-      <div class="card">
-        <div class="card-title"><i class="fa-solid fa-gavel"></i> Input Nilai Tilawah</div>
-        <p style="color:#475569;">Gunakan panel ini untuk memasukkan lembar penilaian digital.</p>
+
+      <div class="grid-1-3" style="margin-top: 20px;">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-pen-to-square"></i> Input Nilai Peserta</div>
+          <form id="scoreForm" onsubmit="handleScoreSubmit(event)">
+            <div class="form-group">
+              <label>Cabang Lomba</label>
+              <input type="text" id="scoreBranch" readonly class="form-control" style="background-color: #e2e8f0; font-weight: bold;">
+            </div>
+            <div class="form-group">
+              <label>Kategori Penilaian</label>
+              <select id="scoreKategori" class="form-control" required onchange="loadJudgeLeaderboard()">
+                <option value="PUTRA">PUTRA</option>
+                <option value="PUTRI">PUTRI</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Nomor Peserta</label>
+              <input type="text" id="scoreParticipantNo" required class="form-control" placeholder="Contoh: 005">
+            </div>
+            <div class="form-group">
+              <label>Nama Peserta</label>
+              <input type="text" id="scoreParticipantName" required class="form-control" placeholder="Nama Lengkap">
+            </div>
+            
+            <div id="dynamicCriteriaContainer"></div>
+
+            <div class="form-group">
+              <label>Catatan / Rekomendasi Hakim</label>
+              <textarea id="scoreNote" rows="2" class="form-control" placeholder="Opsional..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-emerald" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> Simpan & Kirim Nilai</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-square-poll-vertical"></i> Papan Skor Realtime Monitor Hakim</div>
+          <div class="table-responsive">
+            <table>
+              <thead id="judgeLeaderboardHeader"></thead>
+              <tbody id="judgeLeaderboardBody">
+                <tr><td colspan="8" style="text-align: center; color: #94a3b8;">Memuat data peringkat...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
+
   </main>
 
-  <div id="registerSuccessModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: #10b981;"></i>
-      <h3 style="margin-top:15px;">Pendaftaran Berhasil!</h3>
-      <div class="credential-box">
-        <div><strong>Username:</strong> <span id="modalUser"></span></div>
-        <div><strong>Password:</strong> <span id="modalPass"></span></div>
-      </div>
-      <button onclick="closeRegisterModal()" class="btn btn-emerald" style="width:100%;">Tutup & Masuk Beranda</button>
-    </div>
-  </div>
-
   <script>
-    // PASTI KAN MENERBITKAN/DEPLOY ULANG GOOGLE SCRIPT ANDA SEBELUM DI REFRESH
-    const API_URL = "https://script.google.com/macros/s/AKfycbziWDoqLQ0F3UPQVuf8i6jgS2PyCN8Hx3vfvTu8K-hZWFZk4qbnQrsSg2VtJ5kXwYCg/exec"; 
-    let globalConfig = { cabangList: [] };
-    let currentUser = { role: 'Public', name: '', noPeserta: '', rawData: {} };
+    // ==========================================
+    // UTAMA: KONFIGURASI URL API DEPLOYMENT GAS Anda
+    // ==========================================
+    const BACKEND_API_URL = "https://script.google.com/macros/s/AKfycbxz9CoXw1Nlzr8Uznh7gBhF6oJiDwSHNihPOYpGf2AU8hnL9jjIwzIL6ru76_iEWGlD/exec"; 
+    // ^ SILAKAN GANTI DENGAN URL WEB APP SEBENARNYA SETELAH DEPLOY DI GOOGLE APPS SCRIPT
 
-    document.addEventListener('DOMContentLoaded', function() {
-      switchTab('home');
-      loadPublicDashboardData();
+    // State Global Aplikasi
+    let currentActiveTab = 'home';
+    let globalCabangList = [];
+    let sessionUser = null;
+
+    // Helper Toast Alert
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.className = `toast-box toast-${type}`;
+      toast.innerText = message;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 4000);
+    }
+
+    // Fungsi Bridge Pemanggil API untuk Menggantikan google.script.run
+    async function callBackend(actionName, payloadData = {}) {
+      try {
+        const response = await fetch(BACKEND_API_URL, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8' // Menghindari preflight CORS yang ketat pada Apps Script
+          },
+          body: JSON.stringify({ action: actionName, data: payloadData })
+        });
+        
+        if (!response.ok) throw new Error('Network response was not ok.');
+        
+        const result = await response.json();
+        if (result.status === 'success') {
+          return result.data;
+        } else {
+          throw new Error(result.message || 'Terjadi kesalahan sistem internal server.');
+        }
+      } catch (error) {
+        console.error("API Fetch Error:", error);
+        showToast("Koneksi API Gagal: " + error.message, 'danger');
+        throw error;
+      }
+    }
+
+    // Lifecycle Pemuatan Aplikasi Awal
+    window.addEventListener('DOMContentLoaded', () => {
+      loadInitialConfig();
     });
 
+    async function loadInitialConfig() {
+      try {
+        const data = await callBackend('getDashboardData');
+        globalCabangList = data.cabangList || [];
+        
+        renderHomeCabang(globalCabangList);
+        populateSelectDropdowns(globalCabangList);
+      } catch (err) {
+        console.error("Gagal memuat konfigurasi awal", err);
+      }
+    }
+
+    // Rendering Data Cabang di Beranda
+    function renderHomeCabang(list) {
+      const ul = document.getElementById('homeCabangList');
+      if (list.length === 0) {
+        ul.innerHTML = '<li style="color: #94a3b8;">Belum ada cabang lomba aktif.</li>';
+        return;
+      }
+      ul.innerHTML = list.map(c => `
+        <li style="padding: 10px; background: #f8fafc; border-left: 4px solid #1b4332; border-radius: 4px; font-size: 0.9rem; font-weight: 600;">
+          <i class="fa-solid fa-certificate text-amber-500 mr-2"></i> ${c.nama} 
+          <br><span style="font-size: 0.75rem; font-weight: normal; color: #64748b;">Kriteria: ${c.kriteria}</span>
+        </li>
+      `).join('');
+    }
+
+    function populateSelectDropdowns(list) {
+      const lbSelect = document.getElementById('leaderboardSelect');
+      const regSelect = document.getElementById('regCabangLomba');
+      const adminLbSelect = document.getElementById('adminLeaderboardSelect');
+
+      const options = list.map(c => `<option value="${c.nama}">${c.nama}</option>`).join('');
+      
+      lbSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>' + options;
+      regSelect.innerHTML = '<option value="">-- Pilih Cabang Lomba --</option>' + options;
+      adminLbSelect.innerHTML = '<option value="">-- Pilih Cabang --</option>' + options;
+    }
+
+    // Navigasi Tab Sistem
     function switchTab(tabId) {
-      const tabs = ['home', 'pendaftaran', 'login', 'pendaftar-panel', 'admin-panel', 'judge-panel'];
-      tabs.forEach(id => {
-        document.getElementById('content-' + id)?.classList.add('hidden');
-        document.getElementById('tab-' + (id==='pendaftar-panel'?'pendaftar':id==='admin-panel'?'admin':id==='judge-panel'?'judge':id))?.classList.remove('tab-active');
-      });
-      document.getElementById('content-' + tabId)?.classList.remove('hidden');
-      document.getElementById('tab-' + (tabId==='pendaftar-panel'?'pendaftar':tabId==='admin-panel'?'admin':tabId==='judge-panel'?'judge':tabId))?.classList.add('tab-active');
+      document.getElementById(`content-${currentActiveTab}`).classList.add('hidden');
+      document.getElementById(`tab-${currentActiveTab === 'admin-panel' ? 'admin' : currentActiveTab === 'judge-panel' ? 'judge' : currentActiveTab}`).classList.remove('tab-active');
+      
+      document.getElementById(`content-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabId === 'admin-panel' ? 'admin' : tabId === 'judge-panel' ? 'judge' : tabId}`).classList.add('tab-active');
+      
+      currentActiveTab = tabId;
     }
 
-    async function loadPublicDashboardData() {
-  try {
-    const response = await fetch(`${API_URL}?action=getPublicDashboard`);
-    const res = await response.json();
-    if(res.success) {
-      globalConfig.cabangList = res.cabangList;
-      
-      // Render Dropdown Cabang
-      let optsCabang = '<option value="">-- Pilih Cabang --</option>';
-      res.cabangList.forEach(c => { optsCabang += `<option value="${c.nama}">${c.nama}</option>`; });
-      document.getElementById('regCabangLomba').innerHTML = optsCabang;
-      document.getElementById('editRegCabang').innerHTML = optsCabang;
-      document.getElementById('leaderboardSelect').innerHTML = optsCabang;
-
-      // PERBAIKAN: Render Dropdown Kafilah secara Dinamis ke form Pendaftaran & Form Edit
-      let optsKafilah = '<option value="">-- Pilih Kafilah / Desa --</option>';
-      if(res.kafilahList && res.kafilahList.length > 0) {
-        res.kafilahList.forEach(k => { optsKafilah += `<option value="${k}">${k}</option>`; });
-      }
-      
-      // Terapkan ke dropdown form pendaftaran baru
-      if(document.getElementById('regKafilah')) {
-        document.getElementById('regKafilah').innerHTML = optsKafilah;
-      }
-      // Terapkan ke dropdown form edit biodata peserta mandiri
-      if(document.getElementById('editRegKafilah')) {
-        document.getElementById('editRegKafilah').innerHTML = optsKafilah;
-      }
-
-      // Render Tabel Peserta
-      const pBody = document.getElementById('publicParticipantsBody');
-      pBody.innerHTML = '';
-      if(res.pesertaList && res.pesertaList.length > 0) {
-        res.pesertaList.forEach(p => {
-          pBody.innerHTML += `<tr>
-            <td style="font-weight:700;">${p.nomorPeserta}</td>
-            <td><strong>${p.namaPeserta}</strong></td>
-            <td>${p.cabangLomba}</td>
-            <td>${p.golongan}</td>
-            <td>${p.kafilah}</td>
-          </tr>`;
-        });
+    // Sinkronisasi Kafilah Berdasarkan Pilihan Desa Pendaftar
+    function syncKafilahWithDesa(selectEl) {
+      const desa = selectEl.value;
+      const kafilahSelect = document.getElementById('regKafilah');
+      if(desa) {
+        kafilahSelect.value = (desa === "Kuta Baru" || desa === "Kuta Jaya" || desa === "Kutabumi") ? `Kelurahan ${desa}` : `Desa ${desa}`;
       } else {
-        pBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">Belum ada data pendaftar.</td></tr>';
+        kafilahSelect.value = "";
       }
     }
-  } catch(e) { console.error("Gagal sinkronisasi data publik.", e); }
-}
 
+    // Helper Konversi Berkas ke Base64 Asinkronus
+    function getBase64(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) resolve({ base64: "", name: "", type: "" });
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          let encoded = reader.result.toString().replace(/^data:(.*,)?base64,/, '');
+          if ((encoded.length % 4) > 0) {
+            encoded += '='.repeat(4 - (encoded.length % 4));
+          }
+          resolve({ base64: encoded, name: file.name, type: file.type });
+        };
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    // Form Handler: Submit Registrasi Pendaftaran
     async function handleRegistrationSubmit(e) {
       e.preventDefault();
+      
+      const fileAkte = document.getElementById('fileAkte').files[0];
+      const fileKk = document.getElementById('fileKk').files[0];
+      const fileFoto = document.getElementById('fileFoto').files[0];
+      
       document.getElementById('regStatusContainer').classList.remove('hidden');
-      const payload = {
-        action: 'submitPendaftaranPublik',
-        cabangLomba: document.getElementById('regCabangLomba').value,
-        kategori: document.getElementById('regKategori').value,
-        golonganLomba: document.getElementById('regGolongan').value,
-        namaPeserta: document.getElementById('regNamaPeserta').value,
-        nik: document.getElementById('regNik').value,
-        kafilah: document.getElementById('regKafilah').value,
-        tempatLahir: document.getElementById('regTempatLahir').value,
-        tanggalLahir: document.getElementById('regTanggalLahir').value
-      };
+      document.getElementById('regBtn').disabled = true;
+
       try {
-        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        const res = await response.json();
-        if(res.success) {
-          document.getElementById('modalUser').innerText = res.username;
-          document.getElementById('modalPass').innerText = res.password;
-          document.getElementById('registerSuccessModal').classList.remove('hidden');
-          document.getElementById('pendaftaranForm').reset();
-        }
-      } catch (err) { alert("Pendaftaran gagal terkirim."); }
-      document.getElementById('regStatusContainer').classList.add('hidden');
+        const akteData = await getBase64(fileAkte);
+        const kkData = await getBase64(fileKk);
+        const fotoData = await getBase64(fileFoto);
+
+        const formData = {
+          cabangLomba: document.getElementById('regCabangLomba').value,
+          kategori: document.getElementById('regKategori').value,
+          golonganLomba: document.getElementById('regGolongan').value,
+          namaPeserta: document.getElementById('regNamaPeserta').value,
+          nik: document.getElementById('regNik').value,
+          kafilah: document.getElementById('regKafilah').value,
+          tempatLahir: document.getElementById('regTempatLahir').value,
+          tanggalLahir: document.getElementById('regTanggalLahir').value,
+          kampung: document.getElementById('regKampung').value,
+          rtRw: document.getElementById('regRtRw').value,
+          desa: document.getElementById('regDesa').value,
+          kecamatan: document.getElementById('regKecamatan').value,
+          
+          akteFile: akteData.base64, akteName: akteData.name, akteType: akteData.type,
+          kkFile: kkData.base64, kkName: kkData.name, kkType: kkData.type,
+          fotoFile: fotoData.base64, fotoName: fotoData.name, fotoType: fotoData.type
+        };
+
+        const responseMsg = await callBackend('pendaftaranPeserta', formData);
+        showToast(responseMsg, 'success');
+        document.getElementById('pendaftaranForm').reset();
+      } catch (err) {
+        showToast("Terjadi kegagalan pendaftaran: " + err.message, 'danger');
+      } finally {
+        document.getElementById('regStatusContainer').classList.add('hidden');
+        document.getElementById('regBtn').disabled = false;
+      }
     }
 
-    function closeRegisterModal() {
-      document.getElementById('registerSuccessModal').classList.add('hidden');
-      loadPublicDashboardData();
-      switchTab('home');
-    }
-
+    // Form Handler: Login Otentikasi Multi-User
     async function handleLogin(e) {
       e.preventDefault();
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
+      const u = document.getElementById('username').value;
+      const p = document.getElementById('password').value;
+
       try {
-        const response = await fetch(`${API_URL}?action=verifyLoginUniversal&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
-        const res = await response.json();
-        if(res.success) {
-          currentUser.role = res.role;
-          document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-user-shield"></i> Role: ${res.role}`;
-          if(res.role === 'Pendaftar') {
-            currentUser.name = res.data.namaPeserta;
-            currentUser.noPeserta = res.data.nomorPeserta;
-            currentUser.rawData = res.data;
-            document.getElementById('pendaftarNamaTitle').innerText = res.data.namaPeserta;
-            document.getElementById('pendaftarNoTitle').innerText = res.data.nomorPeserta;
-            document.getElementById('editRowIndex').value = res.data.rowIndex;
-            document.getElementById('editRegCabang').value = res.data.cabangLomba;
-            document.getElementById('editRegGolongan').value = res.data.golongan;
-            document.getElementById('editRegNama').value = res.data.namaPeserta;
-            document.getElementById('editRegTempat').value = res.data.tempatLahir;
-            document.getElementById('editRegTgl').value = res.data.tanggalLahir.split('T')[0];
-            document.getElementById('tab-pendaftar').classList.remove('hidden');
-            switchTab('pendaftar-panel');
-          } else if(res.role === 'Admin') {
+        const res = await callBackend('verifyLogin', { username: u, password: p });
+        if (res.success) {
+          sessionUser = res;
+          document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-circle-user text-yellow-400 mr-2"></i> ${res.role}: ${res.name}`;
+          showToast(`Selamat datang ${res.name}!`, 'success');
+
+          if (res.role === 'Admin') {
             document.getElementById('tab-admin').classList.remove('hidden');
             switchTab('admin-panel');
-          } else if(res.role === 'Hakim') {
-            document.getElementById('tab-judge').classList.remove('hidden'); // PANEL HAKIM DIKONTROL DI SINI
+            loadAdminCabangTable();
+          } else if (res.role === 'Hakim') {
+            document.getElementById('tab-judge').classList.remove('hidden');
+            document.getElementById('scoreBranch').value = res.branch;
+            document.getElementById('judgeWelcomeText').innerText = `Tugas Cabang Lomba: ${res.branch}`;
             switchTab('judge-panel');
+            generateDynamicCriteriaInputs(res.branch);
           }
-        } else { alert(res.message); }
-      } catch(err) { alert("Gagal terhubung ke server."); }
-    }
-
-    async function handleEditPendaftarSubmit(e) {
-      e.preventDefault();
-      const payload = {
-        action: 'updateDataPendaftarMandiri',
-        rowIndex: document.getElementById('editRowIndex').value,
-        cabangLomba: document.getElementById('editRegCabang').value,
-        golongan: document.getElementById('editRegGolongan').value,
-        namaPeserta: document.getElementById('editRegNama').value,
-        tempatLahir: document.getElementById('editRegTempat').value,
-        tanggalLahir: document.getElementById('editRegTgl').value
-      };
-      try {
-        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        const res = await response.json();
-        alert(res.message);
-        if(res.success) { loadPublicDashboardData(); }
-      } catch(err) { alert("Gagal sinkronisasi data."); }
-    }
-
-    function printBuktiF5() {
-      const pWin = window.open('', '_blank');
-      pWin.document.write(`<html><head><title>F5 Bukti Pendaftaran</title><style>body{font-family:sans-serif;padding:30px;} .box{border:3px double #1b4332;padding:20px;max-width:500px;margin:0 auto;}</style></head><body><div class="box"><h2 style="text-align:center;color:#1b4332;">KARTU BUKTI PENDAFTARAN MTQ (F5)</h2><hr style="border-color:#d4af37;"><br><table style="line-height:2;"><tr><td><b>No Peserta</b></td><td>: ${currentUser.noPeserta}</td></tr><tr><td><b>Nama</b></td><td>: ${document.getElementById('editRegNama').value}</td></tr><tr><td><b>Cabang</b></td><td>: ${document.getElementById('editRegCabang').value}</td></tr><tr><td><b>Golongan</b></td><td>: ${document.getElementById('editRegGolongan').value}</td></tr></table></div><script>window.print();<\/script></body></html>`);
-      pWin.document.close();
+          document.getElementById('loginForm').reset();
+        } else {
+          showToast(res.message, 'danger');
+        }
+      } catch (err) {
+        showToast("Proses login bermasalah.", 'danger');
+      }
     }
 
     function logout() {
-      currentUser = { role: 'Public', name: '', noPeserta: '', rawData: {} };
-      document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-circle-dot"></i> Public Mode`;
-      document.getElementById('tab-pendaftar').classList.add('hidden');
+      sessionUser = null;
+      document.getElementById('userStatus').innerHTML = `<i class="fa-solid fa-circle-dot mr-2"></i> Public Mode`;
       document.getElementById('tab-admin').classList.add('hidden');
       document.getElementById('tab-judge').classList.add('hidden');
+      showToast("Berhasil keluar dari sistem.", 'success');
       switchTab('home');
+    }
+
+    // Papan Leaderboard Publik (Beranda)
+    async function triggerLeaderboardLoad() {
+      const b = document.getElementById('leaderboardSelect').value;
+      const k = document.getElementById('leaderboardKategori').value;
+      if (!b) return;
+
+      const header = document.getElementById('leaderboardHeader');
+      const body = document.getElementById('leaderboardBody');
+      body.innerHTML = '<tr><td colspan="10" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin text-emerald-800"></i> Memuat klasemen real-time...</td></tr>';
+
+      try {
+        const scoresData = await callBackend('getBranchScores', { branchName: b, kategori: k });
+        renderTableData(header, body, scoresData, false);
+      } catch (err) {
+        body.innerHTML = '<tr><td colspan="10" style="text-align:center;color:red;">Gagal menarik data papan skor.</td></tr>';
+      }
+    }
+
+    // Standardisasi Render Tabel untuk Skoring
+    function renderTableData(headerEl, bodyEl, data, isAdminMode = false) {
+      if (!data.headers || data.headers.length === 0 || data.rows.length === 0) {
+        headerEl.innerHTML = '';
+        bodyEl.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:20px;color:#94a3b8;">Belum ada record data nilai yang di-input dewan hakim.</td></tr>`;
+        return;
+      }
+
+      headerEl.innerHTML = `<tr>${data.headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+      
+      bodyEl.innerHTML = data.rows.map(row => {
+        return `<tr>${data.headers.map(h => {
+          let val = row[h] !== undefined ? row[h] : '';
+          if (h === 'Peringkat') {
+            let badge = val == 1 ? 'badge-gold' : val == 2 ? 'badge-silver' : val == 3 ? 'badge-bronze' : '';
+            return `<td><span class="badge-rank ${badge}">${val}</span></td>`;
+          }
+          return `<td>${val}</td>`;
+        }).join('')}</tr>`;
+      }).join('');
+    }
+
+    // ==========================================
+    // BAGIAN KHUSUS: ADMIN CONSOLE LOGIC
+    // ==========================================
+    async function loadAdminCabangTable() {
+      const tbody = document.getElementById('adminCabangTable');
+      try {
+        const data = await callBackend('getDashboardData');
+        globalCabangList = data.cabangList || [];
+        populateSelectDropdowns(globalCabangList);
+        
+        tbody.innerHTML = globalCabangList.map(c => `
+          <tr>
+            <td>${c.id}</td>
+            <td style="font-weight:700;color:#1b4332;">${c.nama}</td>
+            <td><span style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:0.75rem;">${c.kriteria}</span></td>
+            <td style="text-align:center;">
+              <button onclick="editCabang('${c.id}','${c.nama}','${c.kriteria}')" class="btn btn-blue" style="padding:4px 8px;font-size:0.75rem;"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="triggerDeleteCabang('${c.id}','${c.nama}')" class="btn btn-red" style="padding:4px 8px;font-size:0.75rem;"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4">Gagal memuat manajemen cabang.</td></tr>';
+      }
+    }
+
+    function editCabang(id, nama, kriteria) {
+      document.getElementById('cabangId').value = id;
+      document.getElementById('cabangNama').value = nama;
+      document.getElementById('cabangKriteria').value = kriteria;
+      document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Cabang Lomba';
+    }
+
+    function clearCabangForm() {
+      document.getElementById('cabangId').value = '';
+      document.getElementById('cabangForm').reset();
+      document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-plus-circle"></i> Tambah Cabang Lomba';
+    }
+
+    async function handleSaveCabang(e) {
+      e.preventDefault();
+      const payload = {
+        id: document.getElementById('cabangId').value,
+        nama: document.getElementById('cabangNama').value,
+        kriteria: document.getElementById('cabangKriteria').value
+      };
+
+      try {
+        const res = await callBackend('saveCabang', payload);
+        showToast(res.message, 'success');
+        clearCabangForm();
+        loadAdminCabangTable();
+      } catch(e){}
+    }
+
+    async function triggerDeleteCabang(id, nama) {
+      if (!confirm(`Apakah Anda yakin ingin menghapus cabang [${nama}]? Hal ini akan menghapus permanen seluruh lembar lembaran skor kriteria terkait.`)) return;
+      try {
+        const res = await callBackend('deleteCabang', { id, nama });
+        showToast(res.message, 'success');
+        loadAdminCabangTable();
+      } catch(e){}
+    }
+
+    async function triggerInitDatabase() {
+      if(!confirm("Apakah Anda yakin ingin menginisialisasi ulang skema database tabel default?")) return;
+      try {
+        const res = await callBackend('initDatabase');
+        showToast(res, 'success');
+        loadAdminCabangTable();
+      } catch(e){}
+    }
+
+    // Monitor Data Leaderboard Level Admin (Untuk Cetak / Ekspor)
+    let currentAdminScoresRawData = null;
+    async function triggerAdminLeaderboardLoad() {
+      const b = document.getElementById('adminLeaderboardSelect').value;
+      const k = document.getElementById('adminLeaderboardKategori').value;
+      if (!b) return;
+
+      const header = document.getElementById('adminLeaderboardHeader');
+      const body = document.getElementById('adminLeaderboardBody');
+
+      try {
+        const scoresData = await callBackend('getBranchScores', { branchName: b, kategori: k });
+        currentAdminScoresRawData = scoresData;
+        renderTableData(header, body, scoresData, true);
+      } catch (err) {
+        body.innerHTML = '<tr><td colspan="10">Gagal menarik data.</td></tr>';
+      }
+    }
+
+    // Aksi Admin: Ekspor File Excel (.xlsx) dengan SheetJS
+    function downloadLeaderboardXlsx() {
+      const b = document.getElementById('adminLeaderboardSelect').value;
+      const k = document.getElementById('adminLeaderboardKategori').value;
+      if (!currentAdminScoresRawData || currentAdminScoresRawData.rows.length === 0) {
+        showToast("Tidak ada data tabel yang valid untuk diekspor!", 'danger');
+        return;
+      }
+      
+      const worksheetData = currentAdminScoresRawData.rows.map(r => {
+        let obj = {};
+        currentAdminScoresRawData.headers.forEach(h => { obj[h] = r[h]; });
+        return obj;
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, `${k.substring(0,3)}_${b.substring(0,10)}`);
+      XLSX.writeFile(workbook, `Peringkat_MTQ_${b.replace(/\s+/g,'_')}_${k}.xlsx`);
+      showToast("File Spreadsheet berhasil diunduh.", 'success');
+    }
+
+    // Aksi Admin: Cetak Format Form F5 Resmi Negara
+    function printLeaderboard() {
+      const b = document.getElementById('adminLeaderboardSelect').value;
+      const k = document.getElementById('adminLeaderboardKategori').value;
+      if (!currentAdminScoresRawData || currentAdminScoresRawData.rows.length === 0) {
+        showToast("Tabel kosong, tidak dapat mencetak form F5!", 'danger');
+        return;
+      }
+
+      const headersHtml = currentAdminScoresRawData.headers.map(h => `<th style="border: 1px solid black; padding: 6px; text-align: center;">${h}</th>`).join('');
+      const rowsHtml = currentAdminScoresRawData.rows.map(row => `
+        <tr>${currentAdminScoresRawData.headers.map(h => `<td style="border: 1px solid black; padding: 6px; text-align: ${h === 'Nama Peserta' ? 'left' : 'center'};">${row[h] !== undefined ? row[h] : ''}</td>`).join('')}</tr>
+      `).join('');
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Cetak Form F5 - MTQ</title>
+          <style>
+            body { font-family: 'Times New Roman', serif; margin: 40px; color: black; background: white; }
+            .kop-container { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 20px; }
+            .kop-title { font-size: 14pt; font-weight: bold; margin: 0; }
+            .kop-sub { font-size: 12pt; font-weight: bold; margin: 0; }
+            .kop-address { font-size: 10pt; font-style: italic; margin: 0; }
+            .doc-title { text-align: center; font-size: 13pt; font-weight: bold; text-decoration: underline; margin-bottom: 20px; }
+            .meta-table { width: 100%; margin-bottom: 15px; font-size: 11pt; }
+            .data-table { width: 100%; border-collapse: collapse; font-size: 11pt; }
+            .signature-block { width: 100%; margin-top: 40px; font-size: 11pt; }
+          </style>
+        </head>
+        <body>
+          <div class="kop-container">
+            <p class="kop-title">MUSABAQAH TILAWATIL QUR'AN (MTQ)</p>
+            <p class="kop-sub">LEMBAGA PENGEMBANGAN TILAWATIL QUR'AN (LPTQ)</p>
+            <p class="kop-sub" style="font-size: 10pt;">KECAMATAN PASAR KEMIS KABUPATEN TANGERANG</p>
+            <p class="kop-address">Sekretariat: Jl. Raya Pasar Kemis, Kec. Pasar Kemis, Tangerang, Banten 15560</p>
+          </div>
+          <div class="doc-title">DAFTAR NILAI DAN PERINGKAT PESERTA</div>
+          <table class="meta-table">
+            <tr><td style="width: 25%; font-weight: bold;">Cabang Lomba</td><td style="width: 2%;">:</td><td>${b}</td></tr>
+            <tr><td style="font-weight: bold;">Kategori</td><td>:</td><td>${k}</td></tr>
+          </table>
+          <table class="data-table">
+            <thead><tr>${headersHtml}</tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+          <table class="signature-block">
+            <tr>
+              <td style="width: 50%;"></td>
+              <td>
+                Pasar Kemis, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}<br>
+                <strong>Dewan Hakim Ketua,</strong><br><br><br><br>
+                <strong>(............................................................)</strong>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => { printWindow.print(); }, 800);
+    }
+
+    // Aksi Admin: Tarik data Kompilasi Juara Umum & Terbaik dari Seluruh Cabang
+    async function refreshJuaraPemenang() {
+      const gBody = document.getElementById('generalChampionBody');
+      const wBody = document.getElementById('compiledWinnersBody');
+      
+      gBody.innerHTML = '<tr><td colspan="3" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+      wBody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+
+      try {
+        const res = await callBackend('syncAndGetWinners');
+        
+        // Render Klasemen Juara Umum
+        if(res.generalChampion && res.generalChampion.length > 0) {
+          gBody.innerHTML = res.generalChampion.map((c, i) => `
+            <tr>
+              <td><span class="badge-rank ${i==0?'badge-gold':i==1?'badge-silver':i==2?'badge-bronze':''}">${i+1}</span></td>
+              <td style="font-weight:bold;">${c.kafilah}</td>
+              <td style="text-align:center;font-weight:800;color:#1b4332;">${c.points}</td>
+            </tr>
+          `).join('');
+        } else {
+          gBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Tidak ada poin poin terakumulasi.</td></tr>';
+        }
+
+        // Render Juara Terbaik per Cabang
+        if(res.winners && res.winners.length > 0) {
+          wBody.innerHTML = res.winners.map(w => `
+            <tr>
+              <td style="font-weight:600;">${w.cabang}</td>
+              <td><span style="font-size:0.75rem;font-weight:700;">${w.kategori}</span></td>
+              <td style="color:#854d0e;font-weight:bold;"><i class="fa-solid fa-award text-amber-500"></i> ${w.juara1 || '-'}</td>
+              <td style="color:#475569;">${w.juara2 || '-'}</td>
+              <td style="color:#9a3412;">${w.juara3 || '-'}</td>
+            </tr>
+          `).join('');
+        } else {
+          wBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Tidak ada record pemenang lomba ditemukan.</td></tr>';
+        }
+        showToast("Rekapitulasi seluruh cabang disinkronkan!", 'success');
+      } catch (err) {
+        gBody.innerHTML = '<tr><td colspan="3">Gagal memuat.</td></tr>';
+        wBody.innerHTML = '<tr><td colspan="5">Gagal memuat.</td></tr>';
+      }
+    }
+
+    // ==========================================
+    // BAGIAN KHUSUS: DEWAN HAKIM PANEL LOGIC
+    // ==========================================
+    function generateDynamicCriteriaInputs(branchName) {
+      const container = document.getElementById('dynamicCriteriaContainer');
+      const matched = globalCabangList.find(c => c.nama === branchName);
+      if (!matched) return;
+
+      const criteria = matched.kriteria.split(',').map(c => c.trim());
+      container.innerHTML = criteria.map(crit => `
+        <div class="form-group">
+          <label>Nilai Bidang: ${crit} (Skala Angka)</label>
+          <input type="number" step="0.01" data-criteria="${crit}" class="form-control dynamic-criteria-input" required placeholder="Contoh: 85.50">
+        </div>
+      `).join('');
+      
+      loadJudgeLeaderboard();
+    }
+
+    async function loadJudgeLeaderboard() {
+      const b = document.getElementById('scoreBranch').value;
+      const k = document.getElementById('scoreKategori').value;
+      const jHeader = document.getElementById('judgeLeaderboardHeader');
+      const jBody = document.getElementById('judgeLeaderboardBody');
+
+      try {
+        const scoresData = await callBackend('getBranchScores', { branchName: b, kategori: k });
+        renderTableData(jHeader, jBody, scoresData, false);
+      } catch(e){}
+    }
+
+    async function handleScoreSubmit(e) {
+      e.preventDefault();
+      const b = document.getElementById('scoreBranch').value;
+      const k = document.getElementById('scoreKategori').value;
+      const pNo = document.getElementById('scoreParticipantNo').value;
+      const pName = document.getElementById('scoreParticipantName').value;
+      const note = document.getElementById('scoreNote').value;
+
+      const criteriaScores = {};
+      const inputs = document.querySelectorAll('.dynamic-criteria-input');
+      inputs.forEach(input => {
+        const critName = input.getAttribute('data-criteria');
+        criteriaScores[critName] = parseFloat(input.value || 0);
+      });
+
+      const payload = {
+        branchName: b,
+        kategori: k,
+        participantNo: pNo,
+        participantName: pName,
+        criteriaScores: criteriaScores,
+        note: note
+      };
+
+      try {
+        const res = await callBackend('submitScore', payload);
+        showToast(res.message, 'success');
+        document.getElementById('scoreParticipantNo').value = '';
+        document.getElementById('scoreParticipantName').value = '';
+        document.getElementById('scoreNote').value = '';
+        inputs.forEach(i => i.value = '');
+        loadJudgeLeaderboard();
+      } catch(e){}
     }
   </script>
 </body>
